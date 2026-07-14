@@ -1,0 +1,12 @@
+{
+  "name": "clearpipe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ClearPipe — Tier 1 deal intelligence prototype (static form + Vercel serverless function calling Claude).",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

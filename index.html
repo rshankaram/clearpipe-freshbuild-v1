@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClearPipe — Deal Intelligence</title>
+<style>
+  :root{
+    --bg:#faf9f7;
+    --card:#ffffff;
+    --ink:#1c1c1a;
+    --ink-soft:#57564f;
+    --line:#e3e1da;
+    --accent:#1f3d2f;
+    --accent-soft:#e8efe9;
+    --danger:#8a3324;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:24px 18px 64px;
+  }
+  header.top{
+    padding:8px 0 20px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:24px;
+  }
+  header.top .mark{
+    font-size:13px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  header.top h1{
+    font-size:22px;
+    margin:4px 0 0;
+    font-weight:650;
+  }
+  .privacy{
+    background:var(--accent-soft);
+    border:1px solid #d3e0d5;
+    border-radius:var(--radius);
+    padding:14px 16px;
+    font-size:14px;
+    color:#2c4638;
+    margin-bottom:26px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px 18px;
+    margin-bottom:16px;
+  }
+  .q-label{
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .q-sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:-6px 0 12px;
+  }
+  input[type=text], input[type=number], textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:11px 12px;
+    font-size:15px;
+    font-family:inherit;
+    background:#fff;
+    color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:64px;}
+  input:focus, textarea:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  .row-2{display:flex;gap:10px;}
+  .row-2 > div{flex:1;}
+  .field-gap{margin-bottom:14px;}
+  .field-gap:last-child{margin-bottom:0;}
+  .btn-group{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .opt-btn{
+    flex:1;
+    min-width:88px;
+    padding:12px 10px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    color:var(--ink);
+    font-size:14px;
+    font-weight:500;
+    cursor:pointer;
+    text-align:center;
+    transition:border-color .12s, background .12s;
+  }
+  .opt-btn:hover{border-color:var(--accent);}
+  .opt-btn.selected{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .yn .opt-btn{flex:0 0 88px;}
+  .conditional{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+    display:none;
+  }
+  .conditional.show{display:block;}
+  .submit-bar{
+    margin-top:8px;
+  }
+  button.primary{
+    width:100%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:15px;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.primary:disabled{
+    opacity:0.55;
+    cursor:not-allowed;
+  }
+  button.primary:hover:not(:disabled){
+    background:#163024;
+  }
+  .error-msg{
+    color:var(--danger);
+    font-size:13px;
+    margin-top:8px;
+    display:none;
+  }
+  .error-msg.show{display:block;}
+
+  /* output */
+  #output-view{display:none;}
+  .out-section{
+    margin-bottom:22px;
+  }
+  .out-section h2{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--accent);
+    margin:0 0 8px;
+    font-weight:700;
+  }
+  .out-section p{
+    font-size:16px;
+    margin:0 0 10px;
+    color:var(--ink);
+  }
+  .gaps-list{
+    font-size:15px;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+    padding-left:18px;
+  }
+  .gaps-list li{margin-bottom:4px;}
+  .tier2-note{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+  }
+  .tier2-btn{
+    width:100%;
+    padding:14px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink-soft);
+    font-size:15px;
+    font-weight:600;
+    cursor:not-allowed;
+  }
+  .back-link{
+    display:inline-block;
+    margin-top:24px;
+    font-size:14px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:0;
+  }
+  .loading{
+    display:none;
+    text-align:center;
+    padding:40px 10px;
+    color:var(--ink-soft);
+    font-size:15px;
+  }
+  .loading.show{display:block;}
+  .spinner{
+    width:26px;height:26px;
+    border:3px solid var(--line);
+    border-top-color:var(--accent);
+    border-radius:50%;
+    margin:0 auto 14px;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .api-error{
+    display:none;
+    background:#fbeae6;
+    border:1px solid #e3b7ab;
+    color:var(--danger);
+    border-radius:8px;
+    padding:14px;
+    font-size:14px;
+    margin-top:16px;
+  }
+  .api-error.show{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="mark">ClearPipe</div>
+    <h1>What's really happening in this deal?</h1>
+  </header>
+
+  <div class="privacy">
+    Nothing you enter here is stored, saved, or shared. This analysis exists only for you, in this session. When you close this page, it's gone.
+  </div>
+
+  <form id="deal-form">
+
+    <div class="card">
+      <div class="q-label">Deal name &amp; company</div>
+      <div class="field-gap row-2">
+        <div><input type="text" id="deal_name" placeholder="Deal name" required></div>
+        <div><input type="text" id="company_name" placeholder="Company name" required></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Deal value (₹)</div>
+      <input type="number" id="deal_value" placeholder="e.g. 1000000" min="0" required>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Deal stage</div>
+      <div class="btn-group" data-group="deal_stage">
+        <button type="button" class="opt-btn" data-value="Early">Early</button>
+        <button type="button" class="opt-btn" data-value="Middle">Middle</button>
+        <button type="button" class="opt-btn" data-value="Late">Late</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Deal status</div>
+      <div class="btn-group" data-group="deal_status">
+        <button type="button" class="opt-btn" data-value="Moving">Moving</button>
+        <button type="button" class="opt-btn" data-value="Stuck">Stuck</button>
+        <button type="button" class="opt-btn" data-value="Paused">Paused</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Who's been driving the conversation</div>
+      <div class="btn-group" data-group="conversation_driver">
+        <button type="button" class="opt-btn" data-value="You">You</button>
+        <button type="button" class="opt-btn" data-value="Equal">Equal</button>
+        <button type="button" class="opt-btn" data-value="Them">Them</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Primary contact</div>
+      <div class="field-gap row-2">
+        <div><input type="text" id="primary_contact_name" placeholder="Name" required></div>
+        <div><input type="text" id="primary_contact_designation" placeholder="Designation" required></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Met anyone more senior than your primary contact?</div>
+      <div class="btn-group yn" data-group="met_someone_senior">
+        <button type="button" class="opt-btn" data-value="Yes">Yes</button>
+        <button type="button" class="opt-btn" data-value="No">No</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Has price come up — from their side?</div>
+      <div class="btn-group yn" data-group="pricing_raised_by_buyer">
+        <button type="button" class="opt-btn" data-value="Yes">Yes</button>
+        <button type="button" class="opt-btn" data-value="No">No</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Anything happening on their side?</div>
+      <div class="q-sub">Acquisition, leadership change, reorg, budget freeze — anything. Leave blank if you don't know.</div>
+      <textarea id="external_events" placeholder="Optional"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Lost a deal with this company before?</div>
+      <div class="btn-group yn" data-group="previous_loss">
+        <button type="button" class="opt-btn" data-value="Yes">Yes</button>
+        <button type="button" class="opt-btn" data-value="No">No</button>
+      </div>
+      <div class="conditional" id="previous-loss-detail-wrap">
+        <div class="q-sub" style="margin-top:0;">What happened?</div>
+        <textarea id="previous_loss_detail" placeholder="Optional, but useful if you know"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Your biggest concern right now</div>
+      <textarea id="biggest_concern" placeholder="In your own words"></textarea>
+    </div>
+
+    <div class="error-msg" id="form-error">Please fill in every field above — the button choices too — before running the read.</div>
+
+    <div class="submit-bar">
+      <button type="submit" class="primary" id="submit-btn">Get my read</button>
+    </div>
+  </form>
+
+  <div class="loading" id="loading-view">
+    <div class="spinner"></div>
+    Reading this deal the way I'd read it if you were telling me across the table.
+  </div>
+
+  <div class="api-error" id="api-error"></div>
+
+  <div id="output-view">
+    <div class="out-section">
+      <h2>Here's what I'm seeing</h2>
+      <div id="out-seeing"></div>
+    </div>
+    <div class="out-section">
+      <h2>Something worth knowing</h2>
+      <div id="out-worth-knowing"></div>
+    </div>
+    <div class="out-section">
+      <h2>Before your next conversation</h2>
+      <div id="out-next-conversation"></div>
+    </div>
+    <div class="out-section">
+      <h2>What I couldn't assess</h2>
+      <ul class="gaps-list" id="out-gaps"></ul>
+      <p class="tier2-note" id="out-tier2-line"></p>
+      <button class="tier2-btn" disabled title="Coming soon">Answer 5 more questions →</button>
+    </div>
+
+    <button type="button" class="back-link" id="back-btn">← Run another deal</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const form = document.getElementById('deal-form');
+  const selections = {
+    deal_stage: null,
+    deal_status: null,
+    conversation_driver: null,
+    met_someone_senior: null,
+    pricing_raised_by_buyer: null,
+    previous_loss: null
+  };
+
+  document.querySelectorAll('.btn-group').forEach(function(group){
+    const key = group.getAttribute('data-group');
+    group.querySelectorAll('.opt-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        group.querySelectorAll('.opt-btn').forEach(function(b){ b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        selections[key] = btn.getAttribute('data-value');
+
+        if(key === 'previous_loss'){
+          const wrap = document.getElementById('previous-loss-detail-wrap');
+          if(selections.previous_loss === 'Yes'){
+            wrap.classList.add('show');
+          } else {
+            wrap.classList.remove('show');
+            document.getElementById('previous_loss_detail').value = '';
+          }
+        }
+      });
+    });
+  });
+
+  function val(id){
+    return document.getElementById(id).value.trim();
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const errorEl = document.getElementById('form-error');
+    const apiErrorEl = document.getElementById('api-error');
+    apiErrorEl.classList.remove('show');
+
+    const requiredButtons = ['deal_stage','deal_status','conversation_driver','met_someone_senior','pricing_raised_by_buyer','previous_loss'];
+    const missingButton = requiredButtons.some(function(k){ return !selections[k]; });
+    const missingText = !val('deal_name') || !val('company_name') || !val('deal_value') ||
+                         !val('primary_contact_name') || !val('primary_contact_designation');
+
+    if(missingButton || missingText){
+      errorEl.classList.add('show');
+      return;
+    }
+    errorEl.classList.remove('show');
+
+    const payload = {
+      deal_name: val('deal_name'),
+      company_name: val('company_name'),
+      deal_value: val('deal_value'),
+      deal_stage: selections.deal_stage,
+      deal_status: selections.deal_status,
+      conversation_driver: selections.conversation_driver,
+      primary_contact_name: val('primary_contact_name'),
+      primary_contact_designation: val('primary_contact_designation'),
+      met_someone_senior: selections.met_someone_senior,
+      pricing_raised_by_buyer: selections.pricing_raised_by_buyer,
+      external_events: val('external_events'),
+      previous_loss: selections.previous_loss,
+      previous_loss_detail: val('previous_loss_detail'),
+      biggest_concern: val('biggest_concern')
+    };
+
+    form.style.display = 'none';
+    document.getElementById('loading-view').classList.add('show');
+    document.getElementById('submit-btn').disabled = true;
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if(!res.ok){
+        const errBody = await res.json().catch(function(){ return {}; });
+        throw new Error(errBody.error || ('Request failed (' + res.status + ')'));
+      }
+
+      const data = await res.json();
+      renderOutput(data);
+    } catch(err){
+      document.getElementById('loading-view').classList.remove('show');
+      form.style.display = 'block';
+      document.getElementById('submit-btn').disabled = false;
+      apiErrorEl.textContent = 'Something went wrong getting your read: ' + err.message + '. Please try again.';
+      apiErrorEl.classList.add('show');
+    }
+  });
+
+  function toParas(text){
+    return (text || '').split(/\n+/).filter(Boolean).map(function(t){
+      return '<p>' + escapeHtml(t) + '</p>';
+    }).join('');
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.innerText = s;
+    return d.innerHTML;
+  }
+
+  function renderOutput(data){
+    document.getElementById('loading-view').classList.remove('show');
+
+    document.getElementById('out-seeing').innerHTML = toParas(data.seeing);
+    document.getElementById('out-worth-knowing').innerHTML = toParas(data.worthKnowing);
+    document.getElementById('out-next-conversation').innerHTML = toParas(data.nextConversation);
+
+    const gapsList = document.getElementById('out-gaps');
+    gapsList.innerHTML = '';
+    (data.gaps || []).forEach(function(g){
+      const li = document.createElement('li');
+      li.textContent = g;
+      gapsList.appendChild(li);
+    });
+    document.getElementById('out-tier2-line').textContent = data.tier2Line ||
+      "There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.";
+
+    document.getElementById('output-view').style.display = 'block';
+  }
+
+  document.getElementById('back-btn').addEventListener('click', function(){
+    document.getElementById('output-view').style.display = 'none';
+    form.style.display = 'block';
+    document.getElementById('submit-btn').disabled = false;
+    window.scrollTo(0,0);
+  });
+})();
+</script>
+
+</body>
+</html>
