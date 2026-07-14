@@ -17,7 +17,10 @@
     --line:#e3e1da;
     --accent:#1f3d2f;
     --accent-soft:#e8efe9;
+    --warn:#8a6d1f;
+    --warn-soft:#f3ecd9;
     --danger:#8a3324;
+    --danger-soft:#fbeae6;
     --radius:10px;
   }
   *{box-sizing:border-box;}
@@ -119,6 +122,9 @@
     gap:8px;
     flex-wrap:wrap;
   }
+  .btn-group.stacked{
+    flex-direction:column;
+  }
   .opt-btn{
     flex:1;
     min-width:88px;
@@ -132,6 +138,10 @@
     cursor:pointer;
     text-align:center;
     transition:border-color .12s, background .12s;
+  }
+  .btn-group.stacked .opt-btn{
+    text-align:left;
+    width:100%;
   }
   .opt-btn:hover{border-color:var(--accent);}
   .opt-btn.selected{
@@ -177,7 +187,7 @@
   .error-msg.show{display:block;}
 
   /* output */
-  #output-view{display:none;}
+  #output-view, #tier2-form-view{display:none;}
   .output-grid{
     display:grid;
     grid-template-columns:1fr;
@@ -240,6 +250,15 @@
     font-weight:600;
     cursor:not-allowed;
   }
+  .tier2-btn.enabled{
+    cursor:pointer;
+    color:#fff;
+    background:var(--accent);
+    border-color:var(--accent);
+  }
+  .tier2-btn.enabled:hover{
+    background:#163024;
+  }
   .back-link{
     display:inline-block;
     margin-top:28px;
@@ -270,7 +289,7 @@
   @keyframes spin{to{transform:rotate(360deg);}}
   .api-error{
     display:none;
-    background:#fbeae6;
+    background:var(--danger-soft);
     border:1px solid #e3b7ab;
     color:var(--danger);
     border-radius:8px;
@@ -279,6 +298,43 @@
     margin-top:16px;
   }
   .api-error.show{display:block;}
+
+  .confidence-banner{
+    margin-top:8px;
+    border-radius:var(--radius);
+    padding:18px 20px;
+    border:1px solid var(--line);
+  }
+  .confidence-banner .band-label{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    font-weight:700;
+    margin:0 0 6px;
+  }
+  .confidence-banner p{
+    margin:0;
+    font-size:15px;
+  }
+  .confidence-banner.high{ background:var(--accent-soft); border-color:#c9dccd; }
+  .confidence-banner.high .band-label{ color:var(--accent); }
+  .confidence-banner.medium{ background:var(--warn-soft); border-color:#e0d2a3; }
+  .confidence-banner.medium .band-label{ color:var(--warn); }
+  .confidence-banner.low{ background:var(--danger-soft); border-color:#e3b7ab; }
+  .confidence-banner.low .band-label{ color:var(--danger); }
+
+  .section-title{
+    font-size:22px;
+    font-weight:650;
+    font-family:'Fraunces',Georgia,serif;
+    color:var(--accent);
+    margin:0 0 6px;
+  }
+  .section-intro{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+  }
 </style>
 </head>
 <body>
@@ -431,7 +487,7 @@
           <h2>What I couldn't assess</h2>
           <ul class="gaps-list" id="out-gaps"></ul>
           <p class="tier2-note" id="out-tier2-line"></p>
-          <button class="tier2-btn" disabled title="Coming soon">Answer 5 more questions →</button>
+          <button class="tier2-btn" id="tier2-cta-btn" title="Answer 5 more questions">Answer 5 more questions →</button>
         </div>
       </div>
     </div>
@@ -439,11 +495,154 @@
     <button type="button" class="back-link" id="back-btn">← Run another deal</button>
   </div>
 
+  <div id="tier2-form-view">
+    <p class="section-title">The complete picture</p>
+    <p class="section-intro">Five more questions. Same rules — nothing here is stored, and this builds on the read you already have.</p>
+
+    <form id="tier2-form">
+
+      <div class="card">
+        <div class="q-label">Can your contact actually decide, or does someone else approve?</div>
+        <div class="q-sub">Not who recommends it — who has to say yes for the money to move.</div>
+        <div class="btn-group stacked" data-group="decision_authority">
+          <button type="button" class="opt-btn" data-value="Yes they can decide">Yes, they can decide</button>
+          <button type="button" class="opt-btn" data-value="No someone else approves">No, someone else approves</button>
+          <button type="button" class="opt-btn" data-value="I'm not sure">I'm not sure</button>
+        </div>
+        <div class="conditional" id="economic-buyer-wrap">
+          <div class="q-label" style="margin-top:4px;">Have you personally met that approver?</div>
+          <div class="btn-group yn" data-group="met_economic_buyer">
+            <button type="button" class="opt-btn" data-value="Yes">Yes</button>
+            <button type="button" class="opt-btn" data-value="No">No</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="q-label">Who was in the last serious meeting with them?</div>
+        <div class="q-sub">Names and roles, as best you remember. This helps spot who's missing from the room.</div>
+        <textarea id="last_meeting_attendees" placeholder="e.g. Just Ravi, on a call"></textarea>
+        <div style="margin-top:14px;">
+          <div class="q-label">Was there anyone missing who probably should have been there?</div>
+          <div class="btn-group" data-group="absent_stakeholder">
+            <button type="button" class="opt-btn" data-value="Yes">Yes</button>
+            <button type="button" class="opt-btn" data-value="No">No</button>
+            <button type="button" class="opt-btn" data-value="I don't know who should have been there">Not sure</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="q-label">Which way has information been flowing?</div>
+        <div class="q-sub">Have they shared anything internal with you — a brief, a process document, a real requirement — or has it mostly been you explaining things to them?</div>
+        <div class="btn-group stacked" data-group="information_flow">
+          <button type="button" class="opt-btn" data-value="Yes they've shared internal information">Yes, they've shared internal information</button>
+          <button type="button" class="opt-btn" data-value="No it's mostly been me sharing">No, it's mostly been me sharing</button>
+          <button type="button" class="opt-btn" data-value="A bit of both">A bit of both</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="q-label">How deep has the commercial conversation actually gone?</div>
+        <div class="q-sub">Not just "has price come up" — has there been a real conversation about numbers, structure, or how this gets funded?</div>
+        <div class="btn-group stacked" data-group="commercial_conversation">
+          <button type="button" class="opt-btn" data-value="Yes we've talked seriously about the commercial side">Yes, we've talked seriously about it</button>
+          <button type="button" class="opt-btn" data-value="It's come up briefly but not in depth">It's come up briefly, not in depth</button>
+          <button type="button" class="opt-btn" data-value="No it's been all about the solution so far">No, it's been all about the solution so far</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="q-label">Why are you in this conversation at all?</div>
+        <div class="q-sub">How this deal actually started tells you a lot about how seriously to take it.</div>
+        <div class="btn-group stacked" data-group="invitation_reason">
+          <button type="button" class="opt-btn" data-value="A referral brought us in">A referral brought us in</button>
+          <button type="button" class="opt-btn" data-value="We approached them first">We approached them first</button>
+          <button type="button" class="opt-btn" data-value="They found us">They found us</button>
+          <button type="button" class="opt-btn" data-value="We were invited to bid or respond">We were invited to bid or respond (RFP/tender)</button>
+          <button type="button" class="opt-btn" data-value="We have an existing relationship">We have an existing relationship</button>
+          <button type="button" class="opt-btn" data-value="I'm not sure why we're in this conversation">I'm not sure why we're in this conversation</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="q-label">Anything you know that isn't written down anywhere?</div>
+        <div class="q-sub">A relationship complication, an internal conflict, a quality concern, something you just sense — the thing that's hard to put in a CRM field.</div>
+        <textarea id="invisible_knowledge" placeholder="Optional, but often the most useful answer here"></textarea>
+      </div>
+
+      <div class="card">
+        <div class="q-label">Do you know who else they're likely considering?</div>
+        <div class="q-sub">Named competitors, or a strong sense that you're the only one in the room.</div>
+        <div class="btn-group stacked" data-group="competitor_awareness">
+          <button type="button" class="opt-btn" data-value="Yes I know who">Yes, I know who</button>
+          <button type="button" class="opt-btn" data-value="I think so but I don't know who">I think so, but I don't know who</button>
+          <button type="button" class="opt-btn" data-value="I don't believe so">I don't believe so</button>
+        </div>
+        <div class="conditional" id="competitor-detail-wrap">
+          <div class="q-sub" style="margin-top:0;">Who, and what do you know about them?</div>
+          <textarea id="competitor_detail" placeholder="Optional"></textarea>
+        </div>
+        <div class="conditional" id="competitor-confidence-wrap">
+          <div class="q-sub" style="margin-top:0;">What makes you confident there's no one else?</div>
+          <textarea id="competitor_confidence_reason" placeholder="Optional"></textarea>
+        </div>
+      </div>
+
+      <div class="error-msg" id="tier2-form-error">Please answer every question above before running the complete read.</div>
+
+      <div class="submit-bar">
+        <button type="submit" class="primary" id="tier2-submit-btn">Get the complete read</button>
+      </div>
+    </form>
+
+    <button type="button" class="back-link" id="tier2-back-btn">← Back to the read you already have</button>
+  </div>
+
+  <div id="tier2-output-view">
+    <div class="output-grid">
+      <div class="output-col-left">
+        <p class="col-heading">The read</p>
+        <div class="out-section">
+          <h2>Here's what I'm seeing</h2>
+          <div id="t2-out-seeing"></div>
+        </div>
+        <div class="out-section">
+          <h2>Something worth knowing</h2>
+          <div id="t2-out-worth-knowing"></div>
+        </div>
+        <div class="out-section" id="t2-watch-out-section" style="display:none;">
+          <h2>Watch out for this</h2>
+          <div id="t2-out-watch-out"></div>
+        </div>
+      </div>
+
+      <div class="output-col-right">
+        <p class="col-heading">What to do about it</p>
+        <div class="out-section">
+          <h2>Before your next conversation</h2>
+          <div id="t2-out-next-conversation"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="out-section" style="margin-top:8px;">
+      <h2>Where this deal stands</h2>
+      <div class="confidence-banner" id="confidence-banner">
+        <p class="band-label" id="confidence-band-label"></p>
+        <p id="confidence-reason"></p>
+      </div>
+    </div>
+
+    <button type="button" class="back-link" id="tier2-output-back-btn">← Run another deal</button>
+  </div>
+
 </div>
 
 <script>
 (function(){
   const form = document.getElementById('deal-form');
+  const tier2Form = document.getElementById('tier2-form');
   const selections = {
     deal_stage: null,
     deal_status: null,
@@ -452,8 +651,18 @@
     pricing_raised_by_buyer: null,
     previous_loss: null
   };
+  const tier2Selections = {
+    decision_authority: null,
+    met_economic_buyer: null,
+    absent_stakeholder: null,
+    information_flow: null,
+    commercial_conversation: null,
+    invitation_reason: null,
+    competitor_awareness: null
+  };
+  let tier1Payload = null;
 
-  document.querySelectorAll('.btn-group').forEach(function(group){
+  document.querySelectorAll('#deal-form .btn-group').forEach(function(group){
     const key = group.getAttribute('data-group');
     group.querySelectorAll('.opt-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -468,6 +677,39 @@
           } else {
             wrap.classList.remove('show');
             document.getElementById('previous_loss_detail').value = '';
+          }
+        }
+      });
+    });
+  });
+
+  document.querySelectorAll('#tier2-form .btn-group').forEach(function(group){
+    const key = group.getAttribute('data-group');
+    group.querySelectorAll('.opt-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        group.querySelectorAll('.opt-btn').forEach(function(b){ b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        tier2Selections[key] = btn.getAttribute('data-value');
+
+        if(key === 'decision_authority'){
+          const wrap = document.getElementById('economic-buyer-wrap');
+          if(tier2Selections.decision_authority === 'No someone else approves'){
+            wrap.classList.add('show');
+          } else {
+            wrap.classList.remove('show');
+            tier2Selections.met_economic_buyer = null;
+          }
+        }
+
+        if(key === 'competitor_awareness'){
+          const detailWrap = document.getElementById('competitor-detail-wrap');
+          const reasonWrap = document.getElementById('competitor-confidence-wrap');
+          detailWrap.classList.remove('show');
+          reasonWrap.classList.remove('show');
+          if(tier2Selections.competitor_awareness === 'Yes I know who'){
+            detailWrap.classList.add('show');
+          } else if(tier2Selections.competitor_awareness === "I don't believe so"){
+            reasonWrap.classList.add('show');
           }
         }
       });
@@ -495,7 +737,7 @@
     }
     errorEl.classList.remove('show');
 
-    const payload = {
+    tier1Payload = {
       deal_name: val('deal_name'),
       company_name: val('company_name'),
       deal_value: val('deal_value'),
@@ -521,7 +763,7 @@
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(tier1Payload)
       });
 
       if(!res.ok){
@@ -530,13 +772,79 @@
       }
 
       const data = await res.json();
-      renderOutput(data);
+      renderTier1Output(data);
     } catch(err){
       document.getElementById('loading-view').classList.remove('show');
       form.style.display = 'block';
       document.getElementById('privacy-banner').style.display = 'block';
       document.getElementById('submit-btn').disabled = false;
       apiErrorEl.textContent = 'Something went wrong getting your read: ' + err.message + '. Please try again.';
+      apiErrorEl.classList.add('show');
+    }
+  });
+
+  tier2Form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const errorEl = document.getElementById('tier2-form-error');
+    const apiErrorEl = document.getElementById('api-error');
+    apiErrorEl.classList.remove('show');
+
+    const requiredButtons = ['decision_authority','absent_stakeholder','information_flow','commercial_conversation','invitation_reason','competitor_awareness'];
+    const missingButton = requiredButtons.some(function(k){ return !tier2Selections[k]; });
+    const missingConditional =
+      (tier2Selections.decision_authority === 'No someone else approves' && !tier2Selections.met_economic_buyer) ||
+      !val('last_meeting_attendees');
+
+    if(missingButton || missingConditional){
+      errorEl.classList.add('show');
+      return;
+    }
+    errorEl.classList.remove('show');
+
+    const tier2Payload = Object.assign({}, tier1Payload, {
+      tier: 2,
+      decision_authority: tier2Selections.decision_authority,
+      last_meeting_attendees: val('last_meeting_attendees'),
+      absent_stakeholder: tier2Selections.absent_stakeholder,
+      information_flow: tier2Selections.information_flow,
+      commercial_conversation: tier2Selections.commercial_conversation,
+      invitation_reason: tier2Selections.invitation_reason,
+      invisible_knowledge: val('invisible_knowledge'),
+      competitor_awareness: tier2Selections.competitor_awareness
+    });
+    if(tier2Selections.met_economic_buyer){
+      tier2Payload.met_economic_buyer = tier2Selections.met_economic_buyer;
+    }
+    if(tier2Selections.competitor_awareness === 'Yes I know who'){
+      tier2Payload.competitor_detail = val('competitor_detail');
+    }
+    if(tier2Selections.competitor_awareness === "I don't believe so"){
+      tier2Payload.competitor_confidence_reason = val('competitor_confidence_reason');
+    }
+
+    document.getElementById('tier2-form-view').style.display = 'none';
+    document.getElementById('loading-view').classList.add('show');
+    document.getElementById('tier2-submit-btn').disabled = true;
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tier2Payload)
+      });
+
+      if(!res.ok){
+        const errBody = await res.json().catch(function(){ return {}; });
+        throw new Error(errBody.error || ('Request failed (' + res.status + ')'));
+      }
+
+      const data = await res.json();
+      renderTier2Output(data);
+    } catch(err){
+      document.getElementById('loading-view').classList.remove('show');
+      document.getElementById('tier2-form-view').style.display = 'block';
+      document.getElementById('tier2-submit-btn').disabled = false;
+      apiErrorEl.textContent = 'Something went wrong getting your complete read: ' + err.message + '. Please try again.';
       apiErrorEl.classList.add('show');
     }
   });
@@ -553,7 +861,7 @@
     return d.innerHTML;
   }
 
-  function renderOutput(data){
+  function renderTier1Output(data){
     document.getElementById('loading-view').classList.remove('show');
 
     document.getElementById('out-seeing').innerHTML = toParas(data.seeing);
@@ -570,12 +878,64 @@
     document.getElementById('out-tier2-line').textContent = data.tier2Line ||
       "There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.";
 
+    const tier2Btn = document.getElementById('tier2-cta-btn');
+    tier2Btn.classList.add('enabled');
+    tier2Btn.removeAttribute('title');
+    tier2Btn.onclick = function(){
+      document.getElementById('output-view').style.display = 'none';
+      document.getElementById('tier2-form-view').style.display = 'block';
+      window.scrollTo(0,0);
+    };
+
     document.getElementById('output-view').style.display = 'block';
+    document.getElementById('page-wrap').classList.add('wide');
+  }
+
+  function renderTier2Output(data){
+    document.getElementById('loading-view').classList.remove('show');
+
+    document.getElementById('t2-out-seeing').innerHTML = toParas(data.seeing);
+    document.getElementById('t2-out-worth-knowing').innerHTML = toParas(data.worthKnowing);
+    document.getElementById('t2-out-next-conversation').innerHTML = toParas(data.nextConversation);
+
+    const watchSection = document.getElementById('t2-watch-out-section');
+    if(data.watchOutForThis && data.watchOutForThis.trim()){
+      document.getElementById('t2-out-watch-out').innerHTML = toParas(data.watchOutForThis);
+      watchSection.style.display = 'block';
+    } else {
+      watchSection.style.display = 'none';
+    }
+
+    const band = (data.confidenceBand || '').trim();
+    const bannerEl = document.getElementById('confidence-banner');
+    bannerEl.className = 'confidence-banner';
+    if(band){
+      bannerEl.classList.add(band.toLowerCase());
+    }
+    document.getElementById('confidence-band-label').textContent = band ? (band + ' confidence') : '';
+    document.getElementById('confidence-reason').textContent = data.confidenceReason || '';
+
+    document.getElementById('tier2-output-view').style.display = 'block';
     document.getElementById('page-wrap').classList.add('wide');
   }
 
   document.getElementById('back-btn').addEventListener('click', function(){
     document.getElementById('output-view').style.display = 'none';
+    document.getElementById('page-wrap').classList.remove('wide');
+    form.style.display = 'block';
+    document.getElementById('privacy-banner').style.display = 'block';
+    document.getElementById('submit-btn').disabled = false;
+    window.scrollTo(0,0);
+  });
+
+  document.getElementById('tier2-back-btn').addEventListener('click', function(){
+    document.getElementById('tier2-form-view').style.display = 'none';
+    document.getElementById('output-view').style.display = 'block';
+    window.scrollTo(0,0);
+  });
+
+  document.getElementById('tier2-output-back-btn').addEventListener('click', function(){
+    document.getElementById('tier2-output-view').style.display = 'none';
     document.getElementById('page-wrap').classList.remove('wide');
     form.style.display = 'block';
     document.getElementById('privacy-banner').style.display = 'block';
