@@ -4,12 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClearPipe — Deal Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#faf9f7;
     --card:#ffffff;
     --ink:#1c1c1a;
     --ink-soft:#57564f;
+    --ink-faint:#8a887f;
     --line:#e3e1da;
     --accent:#1f3d2f;
     --accent-soft:#e8efe9;
@@ -21,7 +25,7 @@
   body{
     background:var(--bg);
     color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
   }
@@ -30,21 +34,36 @@
     margin:0 auto;
     padding:24px 18px 64px;
   }
+  .wrap.wide{
+    max-width:1080px;
+  }
   header.top{
-    padding:8px 0 20px;
+    padding:18px 0 26px;
     border-bottom:1px solid var(--line);
-    margin-bottom:24px;
+    margin-bottom:26px;
+    text-align:center;
   }
   header.top .mark{
-    font-size:13px;
-    letter-spacing:0.08em;
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:650;
+    font-size:40px;
+    letter-spacing:-0.01em;
+    color:var(--accent);
+    margin:0;
+  }
+  header.top .role-label{
+    font-size:12px;
     text-transform:uppercase;
-    color:var(--ink-soft);
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    margin:6px 0 0;
+    font-weight:600;
   }
   header.top h1{
-    font-size:22px;
-    margin:4px 0 0;
-    font-weight:650;
+    font-size:16px;
+    margin:10px 0 0;
+    font-weight:500;
+    color:var(--ink-soft);
   }
   .privacy{
     background:var(--accent-soft);
@@ -65,12 +84,13 @@
   .q-label{
     font-size:15px;
     font-weight:600;
-    margin-bottom:10px;
+    margin-bottom:4px;
   }
   .q-sub{
-    font-size:13px;
+    font-size:13.5px;
+    line-height:1.45;
     color:var(--ink-soft);
-    margin:-6px 0 12px;
+    margin:0 0 12px;
   }
   input[type=text], input[type=number], textarea{
     width:100%;
@@ -81,6 +101,9 @@
     font-family:inherit;
     background:#fff;
     color:var(--ink);
+  }
+  input::placeholder, textarea::placeholder{
+    color:var(--ink-faint);
   }
   textarea{resize:vertical;min-height:64px;}
   input:focus, textarea:focus{
@@ -155,6 +178,29 @@
 
   /* output */
   #output-view{display:none;}
+  .output-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:28px;
+  }
+  @media (min-width:800px){
+    .output-grid{
+      grid-template-columns:1fr 1fr;
+      align-items:start;
+    }
+    .output-col-right{
+      border-left:1px solid var(--line);
+      padding-left:28px;
+    }
+  }
+  .col-heading{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-faint);
+    margin:0 0 18px;
+    font-weight:700;
+  }
   .out-section{
     margin-bottom:22px;
   }
@@ -163,12 +209,12 @@
     text-transform:uppercase;
     letter-spacing:0.05em;
     color:var(--accent);
-    margin:0 0 8px;
+    margin:0 0 10px;
     font-weight:700;
   }
   .out-section p{
     font-size:16px;
-    margin:0 0 10px;
+    margin:0 0 12px;
     color:var(--ink);
   }
   .gaps-list{
@@ -196,7 +242,7 @@
   }
   .back-link{
     display:inline-block;
-    margin-top:24px;
+    margin-top:28px;
     font-size:14px;
     color:var(--ink-soft);
     text-decoration:underline;
@@ -236,14 +282,15 @@
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="page-wrap">
 
   <header class="top">
-    <div class="mark">ClearPipe</div>
+    <p class="mark">ClearPipe</p>
+    <p class="role-label">Deal Analysis Assistant</p>
     <h1>What's really happening in this deal?</h1>
   </header>
 
-  <div class="privacy">
+  <div class="privacy" id="privacy-banner">
     Nothing you enter here is stored, saved, or shared. This analysis exists only for you, in this session. When you close this page, it's gone.
   </div>
 
@@ -251,19 +298,22 @@
 
     <div class="card">
       <div class="q-label">Deal name &amp; company</div>
+      <div class="q-sub">What you call this deal internally, and who you're selling to.</div>
       <div class="field-gap row-2">
-        <div><input type="text" id="deal_name" placeholder="Deal name" required></div>
-        <div><input type="text" id="company_name" placeholder="Company name" required></div>
+        <div><input type="text" id="deal_name" placeholder="e.g. Mahindra EV — Safety Training" required></div>
+        <div><input type="text" id="company_name" placeholder="e.g. Mahindra Electric" required></div>
       </div>
     </div>
 
     <div class="card">
       <div class="q-label">Deal value (₹)</div>
+      <div class="q-sub">Your best estimate — it doesn't need to be exact.</div>
       <input type="number" id="deal_value" placeholder="e.g. 1000000" min="0" required>
     </div>
 
     <div class="card">
-      <div class="q-label">Deal stage</div>
+      <div class="q-label">Where is this deal, roughly?</div>
+      <div class="q-sub">Early: still exploring, no real commitment yet. Middle: solutioning, proposals, active evaluation. Late: negotiation, close to a decision either way.</div>
       <div class="btn-group" data-group="deal_stage">
         <button type="button" class="opt-btn" data-value="Early">Early</button>
         <button type="button" class="opt-btn" data-value="Middle">Middle</button>
@@ -272,7 +322,8 @@
     </div>
 
     <div class="card">
-      <div class="q-label">Deal status</div>
+      <div class="q-label">And is it actually moving?</div>
+      <div class="q-sub">Moving: real progress recently. Stuck: warm, but nothing's happened in a while. Paused: on hold, no activity expected soon.</div>
       <div class="btn-group" data-group="deal_status">
         <button type="button" class="opt-btn" data-value="Moving">Moving</button>
         <button type="button" class="opt-btn" data-value="Stuck">Stuck</button>
@@ -281,24 +332,27 @@
     </div>
 
     <div class="card">
-      <div class="q-label">Who's been driving the conversation</div>
+      <div class="q-label">Who's been chasing this conversation forward?</div>
+      <div class="q-sub">Are you the one initiating meetings and follow-ups, are they the ones reaching out to you, or is it fairly balanced?</div>
       <div class="btn-group" data-group="conversation_driver">
-        <button type="button" class="opt-btn" data-value="You">You</button>
-        <button type="button" class="opt-btn" data-value="Equal">Equal</button>
-        <button type="button" class="opt-btn" data-value="Them">Them</button>
+        <button type="button" class="opt-btn" data-value="You">Mostly me</button>
+        <button type="button" class="opt-btn" data-value="Equal">Fairly equal</button>
+        <button type="button" class="opt-btn" data-value="Them">Mostly them</button>
       </div>
     </div>
 
     <div class="card">
-      <div class="q-label">Primary contact</div>
+      <div class="q-label">Your primary contact</div>
+      <div class="q-sub">Who you've mainly been speaking with on their side, and their role.</div>
       <div class="field-gap row-2">
-        <div><input type="text" id="primary_contact_name" placeholder="Name" required></div>
-        <div><input type="text" id="primary_contact_designation" placeholder="Designation" required></div>
+        <div><input type="text" id="primary_contact_name" placeholder="e.g. Ravi Shankar" required></div>
+        <div><input type="text" id="primary_contact_designation" placeholder="e.g. VP Sales, Head of L&D" required></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="q-label">Met anyone more senior than your primary contact?</div>
+      <div class="q-label">Has anyone more senior than your contact been involved?</div>
+      <div class="q-sub">A boss, a director, a founder — someone above your contact who's joined a call or been part of any conversation.</div>
       <div class="btn-group yn" data-group="met_someone_senior">
         <button type="button" class="opt-btn" data-value="Yes">Yes</button>
         <button type="button" class="opt-btn" data-value="No">No</button>
@@ -306,7 +360,8 @@
     </div>
 
     <div class="card">
-      <div class="q-label">Has price come up — from their side?</div>
+      <div class="q-label">Has price come up — from their side, not yours?</div>
+      <div class="q-sub">Have they asked what it costs, pushed back on a number, or asked how payment works — without you bringing it up first?</div>
       <div class="btn-group yn" data-group="pricing_raised_by_buyer">
         <button type="button" class="opt-btn" data-value="Yes">Yes</button>
         <button type="button" class="opt-btn" data-value="No">No</button>
@@ -315,25 +370,27 @@
 
     <div class="card">
       <div class="q-label">Anything happening on their side?</div>
-      <div class="q-sub">Acquisition, leadership change, reorg, budget freeze — anything. Leave blank if you don't know.</div>
-      <textarea id="external_events" placeholder="Optional"></textarea>
+      <div class="q-sub">Acquisition, leadership change, reorg, budget freeze, a competing priority — anything at all. Leave blank if you genuinely don't know.</div>
+      <textarea id="external_events" placeholder="e.g. They just acquired a company in a new city and leadership is focused there"></textarea>
     </div>
 
     <div class="card">
-      <div class="q-label">Lost a deal with this company before?</div>
+      <div class="q-label">Have you lost a deal with this company before?</div>
+      <div class="q-sub">Same account, an earlier attempt that didn't convert — by you or anyone else at your firm.</div>
       <div class="btn-group yn" data-group="previous_loss">
         <button type="button" class="opt-btn" data-value="Yes">Yes</button>
         <button type="button" class="opt-btn" data-value="No">No</button>
       </div>
       <div class="conditional" id="previous-loss-detail-wrap">
-        <div class="q-sub" style="margin-top:0;">What happened?</div>
-        <textarea id="previous_loss_detail" placeholder="Optional, but useful if you know"></textarea>
+        <div class="q-sub" style="margin-top:0;">What happened, as best you know it?</div>
+        <textarea id="previous_loss_detail" placeholder="e.g. Lost on price to a cheaper competitor about a year ago"></textarea>
       </div>
     </div>
 
     <div class="card">
-      <div class="q-label">Your biggest concern right now</div>
-      <textarea id="biggest_concern" placeholder="In your own words"></textarea>
+      <div class="q-label">What's your biggest concern about this deal right now?</div>
+      <div class="q-sub">In your own words — the thing that's nagging at you, even if you can't fully explain why.</div>
+      <textarea id="biggest_concern" placeholder="e.g. I haven't heard from them in three weeks and I'm not sure why"></textarea>
     </div>
 
     <div class="error-msg" id="form-error">Please fill in every field above — the button choices too — before running the read.</div>
@@ -351,23 +408,32 @@
   <div class="api-error" id="api-error"></div>
 
   <div id="output-view">
-    <div class="out-section">
-      <h2>Here's what I'm seeing</h2>
-      <div id="out-seeing"></div>
-    </div>
-    <div class="out-section">
-      <h2>Something worth knowing</h2>
-      <div id="out-worth-knowing"></div>
-    </div>
-    <div class="out-section">
-      <h2>Before your next conversation</h2>
-      <div id="out-next-conversation"></div>
-    </div>
-    <div class="out-section">
-      <h2>What I couldn't assess</h2>
-      <ul class="gaps-list" id="out-gaps"></ul>
-      <p class="tier2-note" id="out-tier2-line"></p>
-      <button class="tier2-btn" disabled title="Coming soon">Answer 5 more questions →</button>
+    <div class="output-grid">
+      <div class="output-col-left">
+        <p class="col-heading">The read</p>
+        <div class="out-section">
+          <h2>Here's what I'm seeing</h2>
+          <div id="out-seeing"></div>
+        </div>
+        <div class="out-section">
+          <h2>Something worth knowing</h2>
+          <div id="out-worth-knowing"></div>
+        </div>
+      </div>
+
+      <div class="output-col-right">
+        <p class="col-heading">What to do about it</p>
+        <div class="out-section">
+          <h2>Before your next conversation</h2>
+          <div id="out-next-conversation"></div>
+        </div>
+        <div class="out-section">
+          <h2>What I couldn't assess</h2>
+          <ul class="gaps-list" id="out-gaps"></ul>
+          <p class="tier2-note" id="out-tier2-line"></p>
+          <button class="tier2-btn" disabled title="Coming soon">Answer 5 more questions →</button>
+        </div>
+      </div>
     </div>
 
     <button type="button" class="back-link" id="back-btn">← Run another deal</button>
@@ -447,6 +513,7 @@
     };
 
     form.style.display = 'none';
+    document.getElementById('privacy-banner').style.display = 'none';
     document.getElementById('loading-view').classList.add('show');
     document.getElementById('submit-btn').disabled = true;
 
@@ -467,6 +534,7 @@
     } catch(err){
       document.getElementById('loading-view').classList.remove('show');
       form.style.display = 'block';
+      document.getElementById('privacy-banner').style.display = 'block';
       document.getElementById('submit-btn').disabled = false;
       apiErrorEl.textContent = 'Something went wrong getting your read: ' + err.message + '. Please try again.';
       apiErrorEl.classList.add('show');
@@ -503,11 +571,14 @@
       "There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.";
 
     document.getElementById('output-view').style.display = 'block';
+    document.getElementById('page-wrap').classList.add('wide');
   }
 
   document.getElementById('back-btn').addEventListener('click', function(){
     document.getElementById('output-view').style.display = 'none';
+    document.getElementById('page-wrap').classList.remove('wide');
     form.style.display = 'block';
+    document.getElementById('privacy-banner').style.display = 'block';
     document.getElementById('submit-btn').disabled = false;
     window.scrollTo(0,0);
   });
