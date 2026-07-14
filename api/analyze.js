@@ -1,4 +1,7 @@
 // ClearPipe — Tier 1 analysis endpoint
+// This file must live at api/analyze.js in your repo (not at the root).
+// On GitHub: "Add file" -> "Create new file" -> type "api/analyze.js" as the filename,
+// then paste everything below. Typing the slash makes GitHub create the api folder for you.
 // Vercel serverless function. Reads ANTHROPIC_API_KEY from env — never exposed to the browser.
 
 const SYSTEM_PROMPT = `You are ClearPipe — a deal intelligence assistant built specifically for B2B sales reps in India. You have deep experience in complex, relationship-driven sales: IT services, SaaS, EdTech, telecom, and adjacent sectors. You have seen hundreds of deals — won, lost, stalled, and resurrected.
@@ -184,7 +187,7 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 1200,
+        max_tokens: 2000,
         system: SYSTEM_PROMPT,
         messages: [
           {
@@ -204,13 +207,14 @@ module.exports = async function handler(req, res) {
 
     const anthropicData = await anthropicRes.json();
     const rawText = (anthropicData.content && anthropicData.content[0] && anthropicData.content[0].text) || '';
+    const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     let parsed;
     try {
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : cleaned);
     } catch (e) {
-      console.error('Failed to parse model output as JSON:', rawText);
+      console.error('Failed to parse model output as JSON. Stop reason:', anthropicData.stop_reason, 'Raw text was:', rawText);
       res.status(502).json({ error: 'Could not parse the analysis. Please try again.' });
       return;
     }
