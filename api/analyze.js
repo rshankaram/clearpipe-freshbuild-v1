@@ -206,7 +206,16 @@ module.exports = async function handler(req, res) {
     }
 
     const anthropicData = await anthropicRes.json();
-    const rawText = (anthropicData.content && anthropicData.content[0] && anthropicData.content[0].text) || '';
+    let rawText = '';
+    if (Array.isArray(anthropicData.content)) {
+      const textBlock = anthropicData.content.find(function (b) { return b && b.type === 'text' && typeof b.text === 'string'; });
+      if (textBlock) {
+        rawText = textBlock.text;
+      } else {
+        // Fallback: concatenate any text-bearing blocks we can find, in case block ordering/typing is unexpected.
+        rawText = anthropicData.content.map(function (b) { return (b && b.text) || ''; }).join('');
+      }
+    }
     const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     let parsed;
@@ -214,7 +223,7 @@ module.exports = async function handler(req, res) {
       const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(jsonMatch ? jsonMatch[0] : cleaned);
     } catch (e) {
-      console.error('Failed to parse model output as JSON. Stop reason:', anthropicData.stop_reason, 'Raw text was:', rawText);
+      console.error('Failed to parse model output as JSON. Stop reason:', anthropicData.stop_reason, 'Raw text was:', rawText, 'Full response was:', JSON.stringify(anthropicData).slice(0, 3000));
       res.status(502).json({ error: 'Could not parse the analysis. Please try again.' });
       return;
     }
