@@ -37,9 +37,6 @@
     margin:0 auto;
     padding:24px 18px 64px;
   }
-  .wrap.wide{
-    max-width:1080px;
-  }
   header.top{
     padding:18px 0 26px;
     border-bottom:1px solid var(--line);
@@ -223,29 +220,15 @@
 
   /* output */
   #output-view, #tier2-form-view, #tier2-output-view{display:none;}
-  .output-grid{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:28px;
-  }
-  @media (min-width:800px){
-    .output-grid{
-      grid-template-columns:1fr 1fr;
-      align-items:start;
-    }
-    .output-col-right{
-      border-left:1px solid var(--line);
-      padding-left:28px;
-    }
-  }
   .col-heading{
     font-size:12px;
     text-transform:uppercase;
     letter-spacing:0.08em;
     color:var(--ink-faint);
-    margin:0 0 18px;
+    margin:28px 0 16px;
     font-weight:700;
   }
+  .col-heading:first-child{margin-top:0;}
   .out-section{
     margin-bottom:22px;
   }
@@ -649,26 +632,14 @@
   <div class="api-error" id="api-error"></div>
 
   <div id="output-view">
-    <div class="output-grid" id="output-grid">
-      <div class="output-col-left">
-        <p class="col-heading">The read</p>
-        <div class="out-section">
-          <h2>Here's what I'm seeing</h2>
-          <div id="out-seeing"></div>
-        </div>
-        <div class="out-section">
-          <h2>Something worth knowing</h2>
-          <div id="out-worth-knowing"></div>
-        </div>
-      </div>
-
-      <div class="output-col-right" id="output-col-right" style="display:none;">
-        <p class="col-heading">What to do about it</p>
-        <div class="out-section">
-          <h2>Before your next conversation</h2>
-          <div id="out-next-conversation"></div>
-        </div>
-      </div>
+    <p class="col-heading">The read</p>
+    <div class="out-section">
+      <h2>Here's what I'm seeing</h2>
+      <div id="out-seeing"></div>
+    </div>
+    <div class="out-section">
+      <h2>Something worth knowing</h2>
+      <div id="out-worth-knowing"></div>
     </div>
 
     <div class="claim-card" id="claim-card" style="display:none;">
@@ -688,13 +659,22 @@
       <div class="claim-loading" id="claim-loading">Working out what I'd actually do here…</div>
     </div>
 
-    <div class="tactical-card" id="tactical-card" style="display:none;">
-      <p id="tactical-ack" style="display:none;"></p>
-      <h2>What I'd do next</h2>
-      <p id="tactical-next"></p>
-      <h2>One thing to keep an eye on</h2>
-      <p id="tactical-watch"></p>
-      <p class="tactical-closing" id="tactical-closing"></p>
+    <div id="action-section" style="display:none;">
+      <p class="col-heading">What to do about it</p>
+
+      <div class="out-section" id="next-conversation-section" style="display:none;">
+        <h2>Before your next conversation</h2>
+        <div id="out-next-conversation"></div>
+      </div>
+
+      <div class="tactical-card" id="tactical-card" style="display:none;">
+        <p id="tactical-ack" style="display:none;"></p>
+        <h2>What I'd do next</h2>
+        <p id="tactical-next"></p>
+        <h2>One thing to keep an eye on</h2>
+        <p id="tactical-watch"></p>
+        <p class="tactical-closing" id="tactical-closing"></p>
+      </div>
     </div>
 
     <div class="out-section" id="gaps-section" style="display:none;">
@@ -819,30 +799,24 @@
   </div>
 
   <div id="tier2-output-view">
-    <div class="output-grid">
-      <div class="output-col-left">
-        <p class="col-heading">The read</p>
-        <div class="out-section">
-          <h2>Here's what I'm seeing</h2>
-          <div id="t2-out-seeing"></div>
-        </div>
-        <div class="out-section">
-          <h2>Something worth knowing</h2>
-          <div id="t2-out-worth-knowing"></div>
-        </div>
-        <div class="out-section" id="t2-watch-out-section" style="display:none;">
-          <h2>Watch out for this</h2>
-          <div id="t2-out-watch-out"></div>
-        </div>
-      </div>
+    <p class="col-heading">The read</p>
+    <div class="out-section">
+      <h2>Here's what I'm seeing</h2>
+      <div id="t2-out-seeing"></div>
+    </div>
+    <div class="out-section">
+      <h2>Something worth knowing</h2>
+      <div id="t2-out-worth-knowing"></div>
+    </div>
+    <div class="out-section" id="t2-watch-out-section" style="display:none;">
+      <h2>Watch out for this</h2>
+      <div id="t2-out-watch-out"></div>
+    </div>
 
-      <div class="output-col-right">
-        <p class="col-heading">What to do about it</p>
-        <div class="out-section">
-          <h2>Before your next conversation</h2>
-          <div id="t2-out-next-conversation"></div>
-        </div>
-      </div>
+    <p class="col-heading">What to do about it</p>
+    <div class="out-section">
+      <h2>Before your next conversation</h2>
+      <div id="t2-out-next-conversation"></div>
     </div>
 
     <div class="out-section" style="margin-top:8px;">
@@ -1152,10 +1126,10 @@
     tacticalAcknowledgment = '';
     actionNextConversationText = '';
 
-    // Screen 1: left column + claim only. Right column, tactical card, gaps and
-    // the Tier 2 CTA all stay hidden until the rep confirms or corrects the claim.
-    document.getElementById('output-grid').style.gridTemplateColumns = '1fr';
-    document.getElementById('output-col-right').style.display = 'none';
+    // Screen 1: the read + claim only. "What to do about it" stays hidden until
+    // the rep confirms or corrects the claim.
+    document.getElementById('action-section').style.display = 'none';
+    document.getElementById('next-conversation-section').style.display = 'none';
     document.getElementById('tactical-card').style.display = 'none';
     document.getElementById('tactical-ack').style.display = 'none';
     document.getElementById('gaps-section').style.display = 'none';
@@ -1176,7 +1150,6 @@
     }
 
     document.getElementById('output-view').style.display = 'block';
-    document.getElementById('page-wrap').classList.add('wide');
   }
 
   async function requestTier1Action(confirmed, correction){
@@ -1211,10 +1184,15 @@
     tacticalAcknowledgment = data.acknowledgment || '';
     actionNextConversationText = data.nextConversation || '';
 
-    // Reveal the right column now that there's something to put in it.
-    document.getElementById('output-grid').style.removeProperty('grid-template-columns');
-    document.getElementById('output-col-right').style.display = 'block';
-    document.getElementById('out-next-conversation').innerHTML = toParas(data.nextConversation);
+    document.getElementById('action-section').style.display = 'block';
+
+    const nextConvSection = document.getElementById('next-conversation-section');
+    if(actionNextConversationText.trim()){
+      document.getElementById('out-next-conversation').innerHTML = toParas(actionNextConversationText);
+      nextConvSection.style.display = 'block';
+    } else {
+      nextConvSection.style.display = 'none';
+    }
 
     const ackEl = document.getElementById('tactical-ack');
     if(tacticalAcknowledgment && tacticalAcknowledgment.trim()){
@@ -1325,12 +1303,10 @@
     document.getElementById('confidence-reason').textContent = data.confidenceReason || '';
 
     document.getElementById('tier2-output-view').style.display = 'block';
-    document.getElementById('page-wrap').classList.add('wide');
   }
 
   document.getElementById('back-btn').addEventListener('click', function(){
     document.getElementById('output-view').style.display = 'none';
-    document.getElementById('page-wrap').classList.remove('wide');
     form.style.display = 'block';
     document.getElementById('privacy-banner').style.display = 'block';
     document.getElementById('submit-btn').disabled = false;
@@ -1345,7 +1321,6 @@
 
   document.getElementById('tier2-output-back-btn').addEventListener('click', function(){
     document.getElementById('tier2-output-view').style.display = 'none';
-    document.getElementById('page-wrap').classList.remove('wide');
     form.style.display = 'block';
     document.getElementById('privacy-banner').style.display = 'block';
     document.getElementById('submit-btn').disabled = false;
@@ -1364,9 +1339,12 @@
       lines.push('');
       lines.push('SOMETHING WORTH KNOWING');
       lines.push(document.getElementById('out-worth-knowing').innerText);
-      lines.push('');
-      lines.push('BEFORE YOUR NEXT CONVERSATION');
-      lines.push(document.getElementById('out-next-conversation').innerText);
+      const nextConvText = document.getElementById('out-next-conversation').innerText;
+      if(nextConvText && nextConvText.trim()){
+        lines.push('');
+        lines.push('BEFORE YOUR NEXT CONVERSATION');
+        lines.push(nextConvText);
+      }
       if(tacticalBlockData){
         lines.push('');
         lines.push("WHAT I'D DO NEXT");
