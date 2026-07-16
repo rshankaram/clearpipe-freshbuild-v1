@@ -157,6 +157,29 @@
     display:none;
   }
   .conditional.show{display:block;}
+
+  /* three-button format with a helper caption under each button */
+  .btn-group-help{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .opt-item{
+    flex:1;
+    min-width:110px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .opt-item .opt-btn{width:100%;}
+  .opt-help{
+    font-size:12px;
+    line-height:1.4;
+    color:var(--ink-faint);
+    text-align:center;
+    padding:0 2px;
+  }
+
   .submit-bar{
     margin-top:8px;
   }
@@ -178,6 +201,18 @@
   button.primary:hover:not(:disabled){
     background:#163024;
   }
+  button.secondary{
+    width:100%;
+    background:#fff;
+    color:var(--accent);
+    border:1px solid var(--accent);
+    border-radius:8px;
+    padding:13px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.secondary:hover{background:var(--accent-soft);}
   .error-msg{
     color:var(--danger);
     font-size:13px;
@@ -335,6 +370,113 @@
     color:var(--ink-soft);
     margin:0 0 22px;
   }
+
+  /* conversational claim + tactical block */
+  .claim-card{
+    background:var(--accent-soft);
+    border:1px solid #c9dccd;
+    border-radius:var(--radius);
+    padding:22px 20px;
+    margin:8px 0 22px;
+  }
+  .claim-card p{
+    font-size:16px;
+    color:var(--ink);
+    margin:0 0 16px;
+  }
+  .claim-card .claim-question{
+    font-weight:600;
+    margin-bottom:14px;
+  }
+  .claim-loading{
+    display:none;
+    font-size:14px;
+    color:var(--ink-soft);
+    padding:6px 0;
+  }
+  .claim-loading.show{display:block;}
+  .tactical-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px 20px;
+    margin:0 0 22px;
+  }
+  .tactical-card h2{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--accent);
+    margin:0 0 8px;
+    font-weight:700;
+  }
+  .tactical-card p{
+    font-size:15.5px;
+    margin:0 0 16px;
+  }
+  .tactical-closing{
+    font-style:italic;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .tier2-cta-row{
+    margin:4px 0 24px;
+  }
+
+  /* rating / download overlay */
+  .rating-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(28,28,26,0.55);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+    z-index:60;
+    overflow-y:auto;
+  }
+  .rating-overlay.show{display:flex;}
+  .rating-modal{
+    background:#fff;
+    border-radius:var(--radius);
+    max-width:480px;
+    width:100%;
+    padding:26px 22px;
+  }
+  .rating-modal .privacy{
+    margin-bottom:20px;
+  }
+  .rating-modal h3{
+    font-size:18px;
+    font-family:'Fraunces',Georgia,serif;
+    color:var(--ink);
+    margin:0 0 4px;
+    font-weight:650;
+  }
+  .rating-modal .rating-sub{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+  .rating-comment-note{
+    font-size:12px;
+    color:var(--ink-faint);
+    margin:8px 0 0;
+  }
+  .rating-close{
+    display:block;
+    margin:14px auto 0;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:13px;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+  .download-row{
+    margin-top:6px;
+  }
 </style>
 </head>
 <body>
@@ -384,6 +526,24 @@
         <button type="button" class="opt-btn" data-value="Moving">Moving</button>
         <button type="button" class="opt-btn" data-value="Stuck">Stuck</button>
         <button type="button" class="opt-btn" data-value="Paused">Paused</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">If they did nothing about this, what happens?</div>
+      <div class="btn-group-help" data-group="pain_urgency">
+        <div class="opt-item">
+          <button type="button" class="opt-btn" data-value="Something breaks">Something breaks</button>
+          <div class="opt-help">a real cost to not fixing this, and they feel it</div>
+        </div>
+        <div class="opt-item">
+          <button type="button" class="opt-btn" data-value="Nothing urgent">Nothing urgent</button>
+          <div class="opt-help">a known problem they can live with for now</div>
+        </div>
+        <div class="opt-item">
+          <button type="button" class="opt-btn" data-value="Genuinely fine">Genuinely fine</button>
+          <div class="opt-help">exploring more than solving anything</div>
+        </div>
       </div>
     </div>
 
@@ -444,15 +604,33 @@
     </div>
 
     <div class="card">
+      <div class="q-label">Your honest read right now — are you winning this?</div>
+      <div class="btn-group-help" data-group="winning_read">
+        <div class="opt-item">
+          <button type="button" class="opt-btn" data-value="Ahead">Ahead</button>
+          <div class="opt-help">this feels like mine to lose</div>
+        </div>
+        <div class="opt-item">
+          <button type="button" class="opt-btn" data-value="Behind">Behind</button>
+          <div class="opt-help">someone else is ahead, or they're leaning towards no decision</div>
+        </div>
+        <div class="opt-item">
+          <button type="button" class="opt-btn" data-value="Too early">Too early</button>
+          <div class="opt-help">genuinely can't tell yet</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="q-label">What's your biggest concern about this deal right now?</div>
       <div class="q-sub">In your own words — the thing that's nagging at you, even if you can't fully explain why.</div>
       <textarea id="biggest_concern" placeholder="e.g. I haven't heard from them in three weeks and I'm not sure why"></textarea>
     </div>
 
-    <div class="error-msg" id="form-error">Please fill in every field above — the button choices too — before running the read.</div>
+    <div class="error-msg" id="form-error">Please fill in every field above — the button choices too — before running the analysis.</div>
 
     <div class="submit-bar">
-      <button type="submit" class="primary" id="submit-btn">Get my read</button>
+      <button type="submit" class="primary" id="submit-btn">Analyse this deal</button>
     </div>
   </form>
 
@@ -487,9 +665,41 @@
           <h2>What I couldn't assess</h2>
           <ul class="gaps-list" id="out-gaps"></ul>
           <p class="tier2-note" id="out-tier2-line"></p>
-          <button class="tier2-btn" id="tier2-cta-btn" title="Answer 5 more questions">Answer 5 more questions →</button>
         </div>
       </div>
+    </div>
+
+    <div class="claim-card" id="claim-card" style="display:none;">
+      <div id="claim-text"></div>
+      <div class="claim-question">Does that sound fair?</div>
+      <div class="btn-group yn" id="claim-buttons">
+        <button type="button" class="opt-btn" id="claim-yes-btn">Yes</button>
+        <button type="button" class="opt-btn" id="claim-no-btn">Not quite — let me explain</button>
+      </div>
+      <div class="conditional" id="claim-correction-wrap">
+        <div class="q-sub" style="margin-top:12px;">What would you change about that?</div>
+        <textarea id="claim-correction-text" placeholder="A line or two is enough"></textarea>
+        <div class="submit-bar">
+          <button type="button" class="secondary" id="claim-correction-submit-btn">Send that through</button>
+        </div>
+      </div>
+      <div class="claim-loading" id="claim-loading">Working out what I'd actually do here…</div>
+    </div>
+
+    <div class="tactical-card" id="tactical-card" style="display:none;">
+      <h2>What I'd do next</h2>
+      <p id="tactical-next"></p>
+      <h2>One thing to keep an eye on</h2>
+      <p id="tactical-watch"></p>
+      <p class="tactical-closing" id="tactical-closing"></p>
+    </div>
+
+    <div class="tier2-cta-row">
+      <button class="tier2-btn enabled" id="tier2-cta-btn">Answer 5 more questions →</button>
+    </div>
+
+    <div class="download-row">
+      <button type="button" class="secondary" id="download-btn-tier1">Download the analysis</button>
     </div>
 
     <button type="button" class="back-link" id="back-btn">← Run another deal</button>
@@ -497,7 +707,7 @@
 
   <div id="tier2-form-view">
     <p class="section-title">The complete picture</p>
-    <p class="section-intro">Five more questions. Same rules — nothing here is stored, and this builds on the read you already have.</p>
+    <p class="section-intro">Five more questions. Same rules — nothing here is stored, and this builds on the analysis you already have.</p>
 
     <form id="tier2-form">
 
@@ -589,7 +799,7 @@
         </div>
       </div>
 
-      <div class="error-msg" id="tier2-form-error">Please answer every question above before running the complete read.</div>
+      <div class="error-msg" id="tier2-form-error">Please answer every question above before running the complete analysis.</div>
 
       <div class="submit-bar">
         <button type="submit" class="primary" id="tier2-submit-btn">Get the complete read</button>
@@ -626,6 +836,14 @@
       </div>
     </div>
 
+    <div class="tactical-card" id="t2-tactical-card" style="display:none;">
+      <h2>What I'd do next</h2>
+      <p id="t2-tactical-next"></p>
+      <h2>One thing to keep an eye on</h2>
+      <p id="t2-tactical-watch"></p>
+      <p class="tactical-closing" id="t2-tactical-closing"></p>
+    </div>
+
     <div class="out-section" style="margin-top:8px;">
       <h2>Where this deal stands</h2>
       <div class="confidence-banner" id="confidence-banner">
@@ -634,9 +852,39 @@
       </div>
     </div>
 
+    <div class="download-row" style="margin-top:22px;">
+      <button type="button" class="secondary" id="download-btn-tier2">Download the analysis</button>
+    </div>
+
     <button type="button" class="back-link" id="tier2-output-back-btn">← Run another deal</button>
   </div>
 
+</div>
+
+<div class="rating-overlay" id="rating-overlay">
+  <div class="rating-modal">
+    <div class="privacy">Your deal stays private and unsaved. This is just your view on the tool.</div>
+    <h3>Before you download — how useful was this?</h3>
+    <p class="rating-sub">One tap. Then your download.</p>
+
+    <div class="btn-group stacked" id="rating-buttons">
+      <button type="button" class="opt-btn" data-value="It blew me away">It blew me away</button>
+      <button type="button" class="opt-btn" data-value="It was helpful">It was helpful</button>
+      <button type="button" class="opt-btn" data-value="It was alright — I probably won't use it again">It was alright — I probably won't use it again</button>
+      <button type="button" class="opt-btn" data-value="It was below par — I won't use it again">It was below par — I won't use it again</button>
+      <button type="button" class="opt-btn" data-value="It was factually wrong — a waste of my time">It was factually wrong — a waste of my time</button>
+    </div>
+
+    <div style="margin-top:16px;">
+      <textarea id="rating-comment" placeholder="Optional" disabled></textarea>
+      <p class="rating-comment-note">Optional — but this is the part that actually helps. No need to name the client here.</p>
+    </div>
+
+    <div class="submit-bar">
+      <button type="button" class="primary" id="rating-download-btn" disabled>Download the analysis</button>
+    </div>
+    <button type="button" class="rating-close" id="rating-cancel-btn">Cancel</button>
+  </div>
 </div>
 
 <script>
@@ -646,10 +894,12 @@
   const selections = {
     deal_stage: null,
     deal_status: null,
+    pain_urgency: null,
     conversation_driver: null,
     met_someone_senior: null,
     pricing_raised_by_buyer: null,
-    previous_loss: null
+    previous_loss: null,
+    winning_read: null
   };
   const tier2Selections = {
     decision_authority: null,
@@ -661,8 +911,11 @@
     competitor_awareness: null
   };
   let tier1Payload = null;
+  let currentPlay = '';
+  let tacticalBlockData = null;
+  let pendingDownloadSource = null; // 'tier1' or 'tier2'
 
-  document.querySelectorAll('#deal-form .btn-group').forEach(function(group){
+  document.querySelectorAll('#deal-form .btn-group, #deal-form .btn-group-help').forEach(function(group){
     const key = group.getAttribute('data-group');
     group.querySelectorAll('.opt-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -726,7 +979,7 @@
     const apiErrorEl = document.getElementById('api-error');
     apiErrorEl.classList.remove('show');
 
-    const requiredButtons = ['deal_stage','deal_status','conversation_driver','met_someone_senior','pricing_raised_by_buyer','previous_loss'];
+    const requiredButtons = ['deal_stage','deal_status','pain_urgency','conversation_driver','met_someone_senior','pricing_raised_by_buyer','previous_loss','winning_read'];
     const missingButton = requiredButtons.some(function(k){ return !selections[k]; });
     const missingText = !val('deal_name') || !val('company_name') || !val('deal_value') ||
                          !val('primary_contact_name') || !val('primary_contact_designation');
@@ -738,11 +991,13 @@
     errorEl.classList.remove('show');
 
     tier1Payload = {
+      request_type: 'tier1',
       deal_name: val('deal_name'),
       company_name: val('company_name'),
       deal_value: val('deal_value'),
       deal_stage: selections.deal_stage,
       deal_status: selections.deal_status,
+      pain_urgency: selections.pain_urgency,
       conversation_driver: selections.conversation_driver,
       primary_contact_name: val('primary_contact_name'),
       primary_contact_designation: val('primary_contact_designation'),
@@ -751,6 +1006,7 @@
       external_events: val('external_events'),
       previous_loss: selections.previous_loss,
       previous_loss_detail: val('previous_loss_detail'),
+      winning_read: selections.winning_read,
       biggest_concern: val('biggest_concern')
     };
 
@@ -778,7 +1034,7 @@
       form.style.display = 'block';
       document.getElementById('privacy-banner').style.display = 'block';
       document.getElementById('submit-btn').disabled = false;
-      apiErrorEl.textContent = 'Something went wrong getting your read: ' + err.message + '. Please try again.';
+      apiErrorEl.textContent = 'Something went wrong getting your analysis: ' + err.message + '. Please try again.';
       apiErrorEl.classList.add('show');
     }
   });
@@ -802,6 +1058,7 @@
     errorEl.classList.remove('show');
 
     const tier2Payload = Object.assign({}, tier1Payload, {
+      request_type: 'tier2',
       tier: 2,
       decision_authority: tier2Selections.decision_authority,
       last_meeting_attendees: val('last_meeting_attendees'),
@@ -844,7 +1101,7 @@
       document.getElementById('loading-view').classList.remove('show');
       document.getElementById('tier2-form-view').style.display = 'block';
       document.getElementById('tier2-submit-btn').disabled = false;
-      apiErrorEl.textContent = 'Something went wrong getting your complete read: ' + err.message + '. Please try again.';
+      apiErrorEl.textContent = 'Something went wrong getting your complete analysis: ' + err.message + '. Please try again.';
       apiErrorEl.classList.add('show');
     }
   });
@@ -878,10 +1135,23 @@
     document.getElementById('out-tier2-line').textContent = data.tier2Line ||
       "There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.";
 
-    const tier2Btn = document.getElementById('tier2-cta-btn');
-    tier2Btn.classList.add('enabled');
-    tier2Btn.removeAttribute('title');
-    tier2Btn.onclick = function(){
+    currentPlay = data.play || '';
+    tacticalBlockData = null;
+    document.getElementById('tactical-card').style.display = 'none';
+    document.getElementById('claim-correction-wrap').classList.remove('show');
+    document.getElementById('claim-loading').classList.remove('show');
+    document.getElementById('claim-buttons').style.display = 'flex';
+    document.getElementById('claim-correction-text').value = '';
+
+    const claimCard = document.getElementById('claim-card');
+    if(data.conversationalClaim && currentPlay){
+      document.getElementById('claim-text').innerHTML = toParas(data.conversationalClaim);
+      claimCard.style.display = 'block';
+    } else {
+      claimCard.style.display = 'none';
+    }
+
+    document.getElementById('tier2-cta-btn').onclick = function(){
       document.getElementById('output-view').style.display = 'none';
       document.getElementById('tier2-form-view').style.display = 'block';
       window.scrollTo(0,0);
@@ -890,6 +1160,83 @@
     document.getElementById('output-view').style.display = 'block';
     document.getElementById('page-wrap').classList.add('wide');
   }
+
+  async function requestTactical(confirmed, correction){
+    const payload = Object.assign({}, tier1Payload, {
+      request_type: 'tactical',
+      play: currentPlay,
+      confirmed: confirmed
+    });
+    if(correction){
+      payload.claim_correction = correction;
+    }
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok){
+      const errBody = await res.json().catch(function(){ return {}; });
+      throw new Error(errBody.error || ('Request failed (' + res.status + ')'));
+    }
+    return res.json();
+  }
+
+  function renderTacticalBlock(prefix, tb){
+    document.getElementById(prefix + 'tactical-next').textContent = tb.whatIdDoNext || '';
+    document.getElementById(prefix + 'tactical-watch').textContent = tb.oneThingToWatch || '';
+    document.getElementById(prefix + 'tactical-closing').textContent = tb.closingLine || '';
+  }
+
+  document.getElementById('claim-yes-btn').addEventListener('click', async function(){
+    const loadingEl = document.getElementById('claim-loading');
+    const apiErrorEl = document.getElementById('api-error');
+    apiErrorEl.classList.remove('show');
+    document.getElementById('claim-buttons').style.display = 'none';
+    loadingEl.classList.add('show');
+    try {
+      const data = await requestTactical(true, null);
+      tacticalBlockData = data.tacticalBlock;
+      loadingEl.classList.remove('show');
+      renderTacticalBlock('', tacticalBlockData);
+      document.getElementById('tactical-card').style.display = 'block';
+    } catch(err){
+      loadingEl.classList.remove('show');
+      document.getElementById('claim-buttons').style.display = 'flex';
+      apiErrorEl.textContent = 'Something went wrong there: ' + err.message + '. Please try again.';
+      apiErrorEl.classList.add('show');
+    }
+  });
+
+  document.getElementById('claim-no-btn').addEventListener('click', function(){
+    document.getElementById('claim-correction-wrap').classList.add('show');
+  });
+
+  document.getElementById('claim-correction-submit-btn').addEventListener('click', async function(){
+    const correction = val('claim-correction-text');
+    if(!correction){
+      return;
+    }
+    const loadingEl = document.getElementById('claim-loading');
+    const apiErrorEl = document.getElementById('api-error');
+    apiErrorEl.classList.remove('show');
+    document.getElementById('claim-buttons').style.display = 'none';
+    document.getElementById('claim-correction-wrap').classList.remove('show');
+    loadingEl.classList.add('show');
+    try {
+      const data = await requestTactical(false, correction);
+      tacticalBlockData = data.tacticalBlock;
+      loadingEl.classList.remove('show');
+      renderTacticalBlock('', tacticalBlockData);
+      document.getElementById('tactical-card').style.display = 'block';
+    } catch(err){
+      loadingEl.classList.remove('show');
+      document.getElementById('claim-buttons').style.display = 'flex';
+      document.getElementById('claim-correction-wrap').classList.add('show');
+      apiErrorEl.textContent = 'Something went wrong there: ' + err.message + '. Please try again.';
+      apiErrorEl.classList.add('show');
+    }
+  });
 
   function renderTier2Output(data){
     document.getElementById('loading-view').classList.remove('show');
@@ -904,6 +1251,14 @@
       watchSection.style.display = 'block';
     } else {
       watchSection.style.display = 'none';
+    }
+
+    const t2TacticalCard = document.getElementById('t2-tactical-card');
+    if(tacticalBlockData){
+      renderTacticalBlock('t2-', tacticalBlockData);
+      t2TacticalCard.style.display = 'block';
+    } else {
+      t2TacticalCard.style.display = 'none';
     }
 
     const band = (data.confidenceBand || '').trim();
@@ -941,6 +1296,138 @@
     document.getElementById('privacy-banner').style.display = 'block';
     document.getElementById('submit-btn').disabled = false;
     window.scrollTo(0,0);
+  });
+
+  // ---- Download gate + rating ----
+
+  function collectAnalysisText(source){
+    const lines = [];
+    lines.push('ClearPipe — analysis for ' + (tier1Payload ? tier1Payload.deal_name : 'this deal'));
+    lines.push('');
+    if(source === 'tier1'){
+      lines.push("HERE'S WHAT I'M SEEING");
+      lines.push(document.getElementById('out-seeing').innerText);
+      lines.push('');
+      lines.push('SOMETHING WORTH KNOWING');
+      lines.push(document.getElementById('out-worth-knowing').innerText);
+      lines.push('');
+      lines.push('BEFORE YOUR NEXT CONVERSATION');
+      lines.push(document.getElementById('out-next-conversation').innerText);
+      if(tacticalBlockData){
+        lines.push('');
+        lines.push("WHAT I'D DO NEXT");
+        lines.push(tacticalBlockData.whatIdDoNext || '');
+        lines.push('');
+        lines.push('ONE THING TO KEEP AN EYE ON');
+        lines.push(tacticalBlockData.oneThingToWatch || '');
+        lines.push('');
+        lines.push(tacticalBlockData.closingLine || '');
+      }
+    } else {
+      lines.push("HERE'S WHAT I'M SEEING");
+      lines.push(document.getElementById('t2-out-seeing').innerText);
+      lines.push('');
+      lines.push('SOMETHING WORTH KNOWING');
+      lines.push(document.getElementById('t2-out-worth-knowing').innerText);
+      const watchText = document.getElementById('t2-out-watch-out').innerText;
+      if(watchText && watchText.trim()){
+        lines.push('');
+        lines.push('WATCH OUT FOR THIS');
+        lines.push(watchText);
+      }
+      lines.push('');
+      lines.push('BEFORE YOUR NEXT CONVERSATION');
+      lines.push(document.getElementById('t2-out-next-conversation').innerText);
+      if(tacticalBlockData){
+        lines.push('');
+        lines.push("WHAT I'D DO NEXT");
+        lines.push(tacticalBlockData.whatIdDoNext || '');
+        lines.push('');
+        lines.push('ONE THING TO KEEP AN EYE ON');
+        lines.push(tacticalBlockData.oneThingToWatch || '');
+        lines.push('');
+        lines.push(tacticalBlockData.closingLine || '');
+      }
+      lines.push('');
+      lines.push('WHERE THIS DEAL STANDS');
+      lines.push(document.getElementById('confidence-band-label').innerText);
+      lines.push(document.getElementById('confidence-reason').innerText);
+    }
+    return lines.join('\n');
+  }
+
+  function triggerFileDownload(){
+    const text = collectAnalysisText(pendingDownloadSource);
+    const dealName = (tier1Payload && tier1Payload.deal_name) ? tier1Payload.deal_name : 'deal';
+    const safeName = dealName.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'deal';
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ClearPipe-' + safeName + '-analysis.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function openRatingOverlay(source){
+    pendingDownloadSource = source;
+    document.getElementById('rating-overlay').classList.add('show');
+    document.querySelectorAll('#rating-buttons .opt-btn').forEach(function(b){ b.classList.remove('selected'); });
+    const commentEl = document.getElementById('rating-comment');
+    commentEl.value = '';
+    commentEl.disabled = true;
+    commentEl.placeholder = 'Optional';
+    document.getElementById('rating-download-btn').disabled = true;
+  }
+
+  function closeRatingOverlay(){
+    document.getElementById('rating-overlay').classList.remove('show');
+    pendingDownloadSource = null;
+  }
+
+  document.getElementById('download-btn-tier1').addEventListener('click', function(){
+    openRatingOverlay('tier1');
+  });
+  document.getElementById('download-btn-tier2').addEventListener('click', function(){
+    openRatingOverlay('tier2');
+  });
+  document.getElementById('rating-cancel-btn').addEventListener('click', closeRatingOverlay);
+
+  const ratingFollowUps = {
+    'It blew me away': 'Which part blew you away?',
+    'It was helpful': 'Which part was helpful?',
+    "It was alright — I probably won't use it again": "What would've made you come back to it?",
+    "It was below par — I won't use it again": 'What let it down?',
+    'It was factually wrong — a waste of my time': 'What did it get wrong?'
+  };
+  let selectedRating = null;
+
+  document.querySelectorAll('#rating-buttons .opt-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#rating-buttons .opt-btn').forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      selectedRating = btn.getAttribute('data-value');
+      const commentEl = document.getElementById('rating-comment');
+      commentEl.disabled = false;
+      commentEl.placeholder = ratingFollowUps[selectedRating] || 'Optional';
+      document.getElementById('rating-download-btn').disabled = false;
+    });
+  });
+
+  document.getElementById('rating-download-btn').addEventListener('click', async function(){
+    if(!selectedRating){ return; }
+    const comment = val('rating-comment');
+    fetch('/api/rate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rating: selectedRating, comment: comment })
+    }).catch(function(){ /* never block the download over this */ });
+
+    triggerFileDownload();
+    closeRatingOverlay();
+    selectedRating = null;
   });
 })();
 </script>
