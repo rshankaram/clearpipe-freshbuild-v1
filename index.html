@@ -419,6 +419,13 @@
     color:var(--ink-soft);
     margin:0;
   }
+  #tactical-ack, #t2-tactical-ack{
+    font-size:15.5px;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+    padding-bottom:16px;
+    border-bottom:1px dashed var(--line);
+  }
   .tier2-cta-row{
     margin:4px 0 24px;
   }
@@ -687,6 +694,7 @@
     </div>
 
     <div class="tactical-card" id="tactical-card" style="display:none;">
+      <p id="tactical-ack" style="display:none;"></p>
       <h2>What I'd do next</h2>
       <p id="tactical-next"></p>
       <h2>One thing to keep an eye on</h2>
@@ -837,6 +845,7 @@
     </div>
 
     <div class="tactical-card" id="t2-tactical-card" style="display:none;">
+      <p id="t2-tactical-ack" style="display:none;"></p>
       <h2>What I'd do next</h2>
       <p id="t2-tactical-next"></p>
       <h2>One thing to keep an eye on</h2>
@@ -913,6 +922,7 @@
   let tier1Payload = null;
   let currentPlay = '';
   let tacticalBlockData = null;
+  let tacticalAcknowledgment = '';
   let pendingDownloadSource = null; // 'tier1' or 'tier2'
 
   document.querySelectorAll('#deal-form .btn-group, #deal-form .btn-group-help').forEach(function(group){
@@ -1078,6 +1088,15 @@
     if(tier2Selections.competitor_awareness === "I don't believe so"){
       tier2Payload.competitor_confidence_reason = val('competitor_confidence_reason');
     }
+    if(currentPlay){
+      tier2Payload.tactical_play = currentPlay;
+    }
+    if(tacticalBlockData){
+      tier2Payload.tactical_summary = {
+        whatIdDoNext: tacticalBlockData.whatIdDoNext || '',
+        oneThingToWatch: tacticalBlockData.oneThingToWatch || ''
+      };
+    }
 
     document.getElementById('tier2-form-view').style.display = 'none';
     document.getElementById('loading-view').classList.add('show');
@@ -1137,7 +1156,9 @@
 
     currentPlay = data.play || '';
     tacticalBlockData = null;
+    tacticalAcknowledgment = '';
     document.getElementById('tactical-card').style.display = 'none';
+    document.getElementById('tactical-ack').style.display = 'none';
     document.getElementById('claim-correction-wrap').classList.remove('show');
     document.getElementById('claim-loading').classList.remove('show');
     document.getElementById('claim-buttons').style.display = 'flex';
@@ -1188,6 +1209,17 @@
     document.getElementById(prefix + 'tactical-closing').textContent = tb.closingLine || '';
   }
 
+  function renderAcknowledgment(prefix, text){
+    const el = document.getElementById(prefix + 'tactical-ack');
+    if(text && text.trim()){
+      el.textContent = text;
+      el.style.display = 'block';
+    } else {
+      el.textContent = '';
+      el.style.display = 'none';
+    }
+  }
+
   document.getElementById('claim-yes-btn').addEventListener('click', async function(){
     const loadingEl = document.getElementById('claim-loading');
     const apiErrorEl = document.getElementById('api-error');
@@ -1197,7 +1229,9 @@
     try {
       const data = await requestTactical(true, null);
       tacticalBlockData = data.tacticalBlock;
+      tacticalAcknowledgment = data.acknowledgment || '';
       loadingEl.classList.remove('show');
+      renderAcknowledgment('', tacticalAcknowledgment);
       renderTacticalBlock('', tacticalBlockData);
       document.getElementById('tactical-card').style.display = 'block';
     } catch(err){
@@ -1226,7 +1260,9 @@
     try {
       const data = await requestTactical(false, correction);
       tacticalBlockData = data.tacticalBlock;
+      tacticalAcknowledgment = data.acknowledgment || '';
       loadingEl.classList.remove('show');
+      renderAcknowledgment('', tacticalAcknowledgment);
       renderTacticalBlock('', tacticalBlockData);
       document.getElementById('tactical-card').style.display = 'block';
     } catch(err){
@@ -1255,6 +1291,7 @@
 
     const t2TacticalCard = document.getElementById('t2-tactical-card');
     if(tacticalBlockData){
+      renderAcknowledgment('t2-', tacticalAcknowledgment);
       renderTacticalBlock('t2-', tacticalBlockData);
       t2TacticalCard.style.display = 'block';
     } else {
