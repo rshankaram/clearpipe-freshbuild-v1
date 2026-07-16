@@ -419,7 +419,7 @@
     color:var(--ink-soft);
     margin:0;
   }
-  #tactical-ack, #t2-tactical-ack{
+  #tactical-ack{
     font-size:15.5px;
     color:var(--ink-soft);
     margin:0 0 18px;
@@ -649,7 +649,7 @@
   <div class="api-error" id="api-error"></div>
 
   <div id="output-view">
-    <div class="output-grid">
+    <div class="output-grid" id="output-grid">
       <div class="output-col-left">
         <p class="col-heading">The read</p>
         <div class="out-section">
@@ -662,16 +662,11 @@
         </div>
       </div>
 
-      <div class="output-col-right">
+      <div class="output-col-right" id="output-col-right" style="display:none;">
         <p class="col-heading">What to do about it</p>
         <div class="out-section">
           <h2>Before your next conversation</h2>
           <div id="out-next-conversation"></div>
-        </div>
-        <div class="out-section">
-          <h2>What I couldn't assess</h2>
-          <ul class="gaps-list" id="out-gaps"></ul>
-          <p class="tier2-note" id="out-tier2-line"></p>
         </div>
       </div>
     </div>
@@ -702,11 +697,17 @@
       <p class="tactical-closing" id="tactical-closing"></p>
     </div>
 
-    <div class="tier2-cta-row">
+    <div class="out-section" id="gaps-section" style="display:none;">
+      <h2>What I couldn't assess</h2>
+      <ul class="gaps-list" id="out-gaps"></ul>
+      <p class="tier2-note" id="out-tier2-line"></p>
+    </div>
+
+    <div class="tier2-cta-row" id="tier2-cta-row" style="display:none;">
       <button class="tier2-btn enabled" id="tier2-cta-btn">Answer 5 more questions →</button>
     </div>
 
-    <div class="download-row">
+    <div class="download-row" id="download-row-tier1" style="display:none;">
       <button type="button" class="secondary" id="download-btn-tier1">Download the analysis</button>
     </div>
 
@@ -844,15 +845,6 @@
       </div>
     </div>
 
-    <div class="tactical-card" id="t2-tactical-card" style="display:none;">
-      <p id="t2-tactical-ack" style="display:none;"></p>
-      <h2>What I'd do next</h2>
-      <p id="t2-tactical-next"></p>
-      <h2>One thing to keep an eye on</h2>
-      <p id="t2-tactical-watch"></p>
-      <p class="tactical-closing" id="t2-tactical-closing"></p>
-    </div>
-
     <div class="out-section" style="margin-top:8px;">
       <h2>Where this deal stands</h2>
       <div class="confidence-banner" id="confidence-banner">
@@ -923,6 +915,9 @@
   let currentPlay = '';
   let tacticalBlockData = null;
   let tacticalAcknowledgment = '';
+  let actionNextConversationText = '';
+  let tier1SeeingText = '';
+  let tier1WorthKnowingText = '';
   let pendingDownloadSource = null; // 'tier1' or 'tier2'
 
   document.querySelectorAll('#deal-form .btn-group, #deal-form .btn-group-help').forEach(function(group){
@@ -1001,7 +996,7 @@
     errorEl.classList.remove('show');
 
     tier1Payload = {
-      request_type: 'tier1',
+      request_type: 'tier1_read',
       deal_name: val('deal_name'),
       company_name: val('company_name'),
       deal_value: val('deal_value'),
@@ -1038,7 +1033,7 @@
       }
 
       const data = await res.json();
-      renderTier1Output(data);
+      renderTier1Read(data);
     } catch(err){
       document.getElementById('loading-view').classList.remove('show');
       form.style.display = 'block';
@@ -1091,10 +1086,17 @@
     if(currentPlay){
       tier2Payload.tactical_play = currentPlay;
     }
-    if(tacticalBlockData){
+    if(tacticalBlockData || actionNextConversationText){
       tier2Payload.tactical_summary = {
-        whatIdDoNext: tacticalBlockData.whatIdDoNext || '',
-        oneThingToWatch: tacticalBlockData.oneThingToWatch || ''
+        whatIdDoNext: tacticalBlockData ? (tacticalBlockData.whatIdDoNext || '') : '',
+        oneThingToWatch: tacticalBlockData ? (tacticalBlockData.oneThingToWatch || '') : '',
+        nextConversation: actionNextConversationText || ''
+      };
+    }
+    if(tier1SeeingText || tier1WorthKnowingText){
+      tier2Payload.tier1_summary = {
+        seeing: tier1SeeingText,
+        worthKnowing: tier1WorthKnowingText
       };
     }
 
@@ -1137,28 +1139,29 @@
     return d.innerHTML;
   }
 
-  function renderTier1Output(data){
+  function renderTier1Read(data){
     document.getElementById('loading-view').classList.remove('show');
 
     document.getElementById('out-seeing').innerHTML = toParas(data.seeing);
     document.getElementById('out-worth-knowing').innerHTML = toParas(data.worthKnowing);
-    document.getElementById('out-next-conversation').innerHTML = toParas(data.nextConversation);
-
-    const gapsList = document.getElementById('out-gaps');
-    gapsList.innerHTML = '';
-    (data.gaps || []).forEach(function(g){
-      const li = document.createElement('li');
-      li.textContent = g;
-      gapsList.appendChild(li);
-    });
-    document.getElementById('out-tier2-line').textContent = data.tier2Line ||
-      "There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.";
+    tier1SeeingText = data.seeing || '';
+    tier1WorthKnowingText = data.worthKnowing || '';
 
     currentPlay = data.play || '';
     tacticalBlockData = null;
     tacticalAcknowledgment = '';
+    actionNextConversationText = '';
+
+    // Screen 1: left column + claim only. Right column, tactical card, gaps and
+    // the Tier 2 CTA all stay hidden until the rep confirms or corrects the claim.
+    document.getElementById('output-grid').style.gridTemplateColumns = '1fr';
+    document.getElementById('output-col-right').style.display = 'none';
     document.getElementById('tactical-card').style.display = 'none';
     document.getElementById('tactical-ack').style.display = 'none';
+    document.getElementById('gaps-section').style.display = 'none';
+    document.getElementById('tier2-cta-row').style.display = 'none';
+    document.getElementById('download-row-tier1').style.display = 'none';
+
     document.getElementById('claim-correction-wrap').classList.remove('show');
     document.getElementById('claim-loading').classList.remove('show');
     document.getElementById('claim-buttons').style.display = 'flex';
@@ -1172,24 +1175,24 @@
       claimCard.style.display = 'none';
     }
 
-    document.getElementById('tier2-cta-btn').onclick = function(){
-      document.getElementById('output-view').style.display = 'none';
-      document.getElementById('tier2-form-view').style.display = 'block';
-      window.scrollTo(0,0);
-    };
-
     document.getElementById('output-view').style.display = 'block';
     document.getElementById('page-wrap').classList.add('wide');
   }
 
-  async function requestTactical(confirmed, correction){
+  async function requestTier1Action(confirmed, correction){
     const payload = Object.assign({}, tier1Payload, {
-      request_type: 'tactical',
+      request_type: 'tier1_action',
       play: currentPlay,
       confirmed: confirmed
     });
     if(correction){
       payload.claim_correction = correction;
+    }
+    if(tier1SeeingText || tier1WorthKnowingText){
+      payload.tier1_summary = {
+        seeing: tier1SeeingText,
+        worthKnowing: tier1WorthKnowingText
+      };
     }
     const res = await fetch('/api/analyze', {
       method: 'POST',
@@ -1203,21 +1206,52 @@
     return res.json();
   }
 
-  function renderTacticalBlock(prefix, tb){
-    document.getElementById(prefix + 'tactical-next').textContent = tb.whatIdDoNext || '';
-    document.getElementById(prefix + 'tactical-watch').textContent = tb.oneThingToWatch || '';
-    document.getElementById(prefix + 'tactical-closing').textContent = tb.closingLine || '';
-  }
+  function renderTier1Action(data){
+    tacticalBlockData = data.tacticalBlock || { whatIdDoNext:'', oneThingToWatch:'', closingLine:'' };
+    tacticalAcknowledgment = data.acknowledgment || '';
+    actionNextConversationText = data.nextConversation || '';
 
-  function renderAcknowledgment(prefix, text){
-    const el = document.getElementById(prefix + 'tactical-ack');
-    if(text && text.trim()){
-      el.textContent = text;
-      el.style.display = 'block';
+    // Reveal the right column now that there's something to put in it.
+    document.getElementById('output-grid').style.removeProperty('grid-template-columns');
+    document.getElementById('output-col-right').style.display = 'block';
+    document.getElementById('out-next-conversation').innerHTML = toParas(data.nextConversation);
+
+    const ackEl = document.getElementById('tactical-ack');
+    if(tacticalAcknowledgment && tacticalAcknowledgment.trim()){
+      ackEl.textContent = tacticalAcknowledgment;
+      ackEl.style.display = 'block';
     } else {
-      el.textContent = '';
-      el.style.display = 'none';
+      ackEl.textContent = '';
+      ackEl.style.display = 'none';
     }
+    document.getElementById('tactical-next').textContent = tacticalBlockData.whatIdDoNext || '';
+    document.getElementById('tactical-watch').textContent = tacticalBlockData.oneThingToWatch || '';
+    document.getElementById('tactical-closing').textContent = tacticalBlockData.closingLine || '';
+    document.getElementById('tactical-card').style.display = 'block';
+
+    const gaps = Array.isArray(data.gaps) ? data.gaps : [];
+    const gapsSection = document.getElementById('gaps-section');
+    if(gaps.length){
+      const gapsList = document.getElementById('out-gaps');
+      gapsList.innerHTML = '';
+      gaps.forEach(function(g){
+        const li = document.createElement('li');
+        li.textContent = g;
+        gapsList.appendChild(li);
+      });
+      document.getElementById('out-tier2-line').textContent = data.tier2Line || '';
+      gapsSection.style.display = 'block';
+    } else {
+      gapsSection.style.display = 'none';
+    }
+
+    document.getElementById('tier2-cta-btn').onclick = function(){
+      document.getElementById('output-view').style.display = 'none';
+      document.getElementById('tier2-form-view').style.display = 'block';
+      window.scrollTo(0,0);
+    };
+    document.getElementById('tier2-cta-row').style.display = 'block';
+    document.getElementById('download-row-tier1').style.display = 'block';
   }
 
   document.getElementById('claim-yes-btn').addEventListener('click', async function(){
@@ -1227,13 +1261,9 @@
     document.getElementById('claim-buttons').style.display = 'none';
     loadingEl.classList.add('show');
     try {
-      const data = await requestTactical(true, null);
-      tacticalBlockData = data.tacticalBlock;
-      tacticalAcknowledgment = data.acknowledgment || '';
+      const data = await requestTier1Action(true, null);
       loadingEl.classList.remove('show');
-      renderAcknowledgment('', tacticalAcknowledgment);
-      renderTacticalBlock('', tacticalBlockData);
-      document.getElementById('tactical-card').style.display = 'block';
+      renderTier1Action(data);
     } catch(err){
       loadingEl.classList.remove('show');
       document.getElementById('claim-buttons').style.display = 'flex';
@@ -1258,13 +1288,9 @@
     document.getElementById('claim-correction-wrap').classList.remove('show');
     loadingEl.classList.add('show');
     try {
-      const data = await requestTactical(false, correction);
-      tacticalBlockData = data.tacticalBlock;
-      tacticalAcknowledgment = data.acknowledgment || '';
+      const data = await requestTier1Action(false, correction);
       loadingEl.classList.remove('show');
-      renderAcknowledgment('', tacticalAcknowledgment);
-      renderTacticalBlock('', tacticalBlockData);
-      document.getElementById('tactical-card').style.display = 'block';
+      renderTier1Action(data);
     } catch(err){
       loadingEl.classList.remove('show');
       document.getElementById('claim-buttons').style.display = 'flex';
@@ -1287,15 +1313,6 @@
       watchSection.style.display = 'block';
     } else {
       watchSection.style.display = 'none';
-    }
-
-    const t2TacticalCard = document.getElementById('t2-tactical-card');
-    if(tacticalBlockData){
-      renderAcknowledgment('t2-', tacticalAcknowledgment);
-      renderTacticalBlock('t2-', tacticalBlockData);
-      t2TacticalCard.style.display = 'block';
-    } else {
-      t2TacticalCard.style.display = 'none';
     }
 
     const band = (data.confidenceBand || '').trim();
@@ -1375,16 +1392,6 @@
       lines.push('');
       lines.push('BEFORE YOUR NEXT CONVERSATION');
       lines.push(document.getElementById('t2-out-next-conversation').innerText);
-      if(tacticalBlockData){
-        lines.push('');
-        lines.push("WHAT I'D DO NEXT");
-        lines.push(tacticalBlockData.whatIdDoNext || '');
-        lines.push('');
-        lines.push('ONE THING TO KEEP AN EYE ON');
-        lines.push(tacticalBlockData.oneThingToWatch || '');
-        lines.push('');
-        lines.push(tacticalBlockData.closingLine || '');
-      }
       lines.push('');
       lines.push('WHERE THIS DEAL STANDS');
       lines.push(document.getElementById('confidence-band-label').innerText);
