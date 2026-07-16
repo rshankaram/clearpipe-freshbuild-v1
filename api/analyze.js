@@ -224,9 +224,9 @@ Respond with ONLY a single valid JSON object — no markdown, no headers, no com
 IF output_format is "TIER_1", the JSON object must have exactly these keys:
 
 {
-  "seeing": "3–4 SHORT paragraphs as a single string, paragraphs separated by a blank line (\\n\\n). Each paragraph is 1–2 sentences ONLY and carries exactly one observation — never stack two ideas in the same paragraph. Never generic. No bullet points. Warm, experienced tone. Favour more short paragraphs over fewer long ones — this is read on a phone screen.",
+  "seeing": "3–4 SHORT paragraphs as a single string, paragraphs separated by a blank line (\n\n). Each paragraph is 1–2 sentences ONLY and carries exactly one observation — never stack two ideas in the same paragraph. Never generic. No bullet points. Warm, experienced tone. Favour more short paragraphs over fewer long ones — this is read on a phone screen.",
   "worthKnowing": "1–2 SHORT paragraphs (1–2 sentences each). The single most important nuance or complication in this deal the rep may not have fully considered. Not a repeat of the section above. Keep it tight. If a Protect Your Time tension line applies (see PLAY DETERMINATION), it belongs here.",
-  "nextConversation": "1–2 sharp, specific questions as a string (separate with \\n\\n if two). Named to this deal, this company, this contact by name wherever relevant. A question the rep cannot currently answer, not advice they already know.",
+  "nextConversation": "1–2 sharp, specific questions as a string (separate with \n\n if two). Named to this deal, this company, this contact by name wherever relevant. A question the rep cannot currently answer, not advice they already know.",
   "gaps": ["exactly 3 short strings, each naming one genuine, specific gap tied to this deal — not generic"],
   "tier2Line": "There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.",
   "play": "the internal play label, exactly one of: Too Early to Call, Build the Foundation, Catch-Up Play, Unverified Late Stage, Protect Your Time, Pull, Close Fast, Compete to Win, Recovery, Stay Warm — never shown to the rep, used only to drive the next API call",
@@ -248,8 +248,8 @@ IF output_format is "TIER_2", the JSON object must have exactly these keys:
 {
   "seeing": "4–5 SHORT paragraphs (1–2 sentences each, one idea per paragraph), sharper and more specific than Tier 1 because more information is available. Same rules as Tier 1: no bullets, warm tone, phone-scannable.",
   "worthKnowing": "1–2 SHORT paragraphs. Deeper nuance than Tier 1. May include the invisible_knowledge input if the rep provided something significant there.",
-  "watchOutForThis": "1–2 SHORT paragraphs naming the specific complication flag(s) that fired in Step 11, and why they matter for THIS deal. Warm but direct — does not lecture, does not repeat what the rep already knows. If NO flags fired, this must be an empty string \\"\\" — never write a sentence saying there are no risks.",
-  "nextConversation": "2–3 specific questions or actions as a string, each on its own short paragraph separated by \\n\\n. Specific to this deal — include the buyer's name and contact's name where relevant. Not general advice.",
+  "watchOutForThis": "1–2 SHORT paragraphs naming the specific complication flag(s) that fired in Step 11, and why they matter for THIS deal. Warm but direct — does not lecture, does not repeat what the rep already knows. If NO flags fired, this must be an empty string \"\" — never write a sentence saying there are no risks.",
+  "nextConversation": "2–3 specific questions or actions as a string, each on its own short paragraph separated by \n\n. Specific to this deal — include the buyer's name and contact's name where relevant. Not general advice.",
   "confidenceBand": "High" or "Medium" or "Low" — exactly one of these three words, nothing else,
   "confidenceReason": "One plain sentence explaining why this deal sits in that band, specific to this deal, not a generic definition of the band."
 }
@@ -503,6 +503,29 @@ module.exports = async function handler(req, res) {
         conversationalClaim: parsed.conversationalClaim || ''
       };
     }
+
+    // ===== TEMP TEST LOGGING — REMOVE THIS BLOCK WHEN TESTING IS DONE =====
+    // Captures full input + output per call to a Google Sheet you own, for reviewing
+    // play accuracy and voice during the tester phase. To remove: delete this whole
+    // block (between the TEMP markers) and the TEST_LOG_WEBHOOK_URL env var in Vercel.
+    // This intentionally includes deal data — it is a deliberate, temporary exception
+    // to the "nothing is stored" promise, agreed for the testing window only.
+    const testLogWebhookUrl = process.env.TEST_LOG_WEBHOOK_URL;
+    if (testLogWebhookUrl) {
+      fetch(testLogWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+          request_type: requestType,
+          input: dealInput,
+          output: output
+        })
+      }).catch(function (err) {
+        console.error('Test log webhook failed:', err);
+      });
+    }
+    // ===== END TEMP TEST LOGGING =====
 
     res.status(200).json(output);
   } catch (err) {
