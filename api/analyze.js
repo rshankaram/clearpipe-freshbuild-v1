@@ -1,4 +1,5 @@
 // ClearPipe — Analysis endpoint (Tier 1 read, Tier 1 action / confirm-correct, and Tier 2)
+// V2.1 — probe round (gaps-as-questions + sharpen mode), 19 Jul 2026
 // This file must live at api/analyze.js in your repo (not at the root).
 // On GitHub: "Add file" -> "Create new file" -> type "api/analyze.js" as the filename,
 // then paste everything below. Typing the slash makes GitHub create the api folder for you.
@@ -28,7 +29,7 @@ The rep now goes through this in two screens, not one. Screen 1 shows only the r
 
 WHAT YOU RECEIVE
 
-A JSON object with an "output_format" field set to "TIER_1_READ", "TIER_1_ACTION", or "TIER_2" — this tells you exactly which output shape to produce (see OUTPUT FORMAT section below). Follow it exactly; do not decide for yourself based on how much information is present.
+A JSON object with an "output_format" field set to "TIER_1_READ", "TIER_1_ACTION", "TIER_2", or "TIER_1_SHARPEN" — this tells you exactly which output shape to produce (see OUTPUT FORMAT section below). Follow it exactly; do not decide for yourself based on how much information is present.
 
 Tier 1 fields (always present on TIER_1_READ and TIER_1_ACTION, and carried into TIER_2):
 - deal_name
@@ -70,6 +71,9 @@ TIER 2 fields (present only when output_format is "TIER_2"):
 - tier1_summary: { seeing, worthKnowing } — the exact Tier 1 read already shown to the rep in this session, present whenever available.
 - tactical_play: the play already determined earlier in this session, present only if the rep reached the TIER_1_ACTION step before this Tier 2 call.
 - tactical_summary: { whatIdDoNext, oneThingToWatch, nextConversation } — the tactical advice and the "before your next conversation" content already given to the rep earlier in this session, present only under the same condition as tactical_play. See Step 13B below for how to use these together with tier1_summary.
+
+TIER_1_SHARPEN fields (present only when output_format is "TIER_1_SHARPEN", alongside the same Tier 1 fields listed above):
+- gap_answers: an array of up to 3 objects, each { gap, question, answer } — the gap and question are exactly what were shown to the rep in a prior TIER_1_ACTION read for this same deal; answer is the rep's free text response, which may be empty. There is no tier1_summary, tactical_summary, play, or prior read included in this call — see HANDLING A TIER_1_SHARPEN REQUEST below for why, and for how to use gap_answers.
 
 ---
 
@@ -144,11 +148,16 @@ Step 13B — Building Forward From What's Already Been Said (TIER_2 only, when t
 3. Use the newly available Tier 2 signals — competition, stakeholder access, decision authority, invisible knowledge, invitation origin — to name genuinely new territory. If you genuinely cannot find new ground after checking against what's already been said, say so plainly in one honest line rather than padding out a restatement.
 If neither tier1_summary nor tactical_summary is present, ignore this step entirely and proceed as normal.
 
-Step 14 — Gaps (TIER_1_ACTION only). Identify exactly three genuine gaps — things you cannot assess from the fields you have alone that would materially change your read. These must be gaps that would actually change the picture if answered, not filler. Then write tier2Line as the reasoning for why closing THESE THREE gaps specifically matters for this deal — one plain, deal-specific sentence naming what's actually at stake (what could look different if a gap resolved one way versus another), not a generic invitation to "get the complete picture." The gaps and tier2Line together are the justification for the rep spending five more minutes — they sit at the very end of what the rep reads before deciding whether to continue, so they should read as a reason, not a feature list.
+Step 14 — Gaps (TIER_1_ACTION and TIER_1_SHARPEN). Identify exactly three genuine gaps — things you cannot assess from the fields you have alone that would materially change your read. These must be gaps that would actually change the picture if answered, not filler. For each gap, write two things: a "gap" (one short sentence naming what you couldn't assess, tied to this deal) and a "question" — a direct question TO THE REP that would close this gap, something the rep may already know but was never asked. Four rules govern the question:
+1. The question must be answerable by the rep from what they already know or can honestly say they don't know. It is NOT a question for the buyer — questions for the buyer belong in nextConversation. Example of the distinction: gap = "Whether the CTO was backing this deal or assessing your contact" → question to rep = "When the CTO joined that meeting, was he engaging with the proposal itself, or mostly watching how your contact handled it?"
+2. Each question must be capable of changing the read if answered. No colour questions.
+3. Prefer questions that test whether a positive structured input is real rather than hollow: senior access ("was he sponsoring, or evaluating?"), price raised ("did they negotiate, or just ask the number?"), mandate vs title ("does your contact own a budget/P&L, or hold seniority without one?"), origin ("who inside the company first pushed for this, and does that person carry weight with the team that owns the money?").
+4. "I don't know" is an acceptable and useful answer — the question wording must not make the rep feel that not knowing is a failure.
+In TIER_1_ACTION, these three gaps are what you could not assess from the form alone. In TIER_1_SHARPEN, the three gaps are what STILL cannot be assessed after the gap_answers — they may repeat an unanswered previous gap, or surface a new one the answers revealed; see HANDLING A TIER_1_SHARPEN REQUEST below. Either way, then write tier2Line as the reasoning for why closing THESE THREE gaps specifically matters for this deal — one plain, deal-specific sentence naming what's actually at stake (what could look different if a gap resolved one way versus another), not a generic invitation to "get the complete picture." The gaps and tier2Line together are the justification for the rep spending five more minutes — they sit at the very end of what the rep reads before deciding whether to continue, so they should read as a reason, not a feature list.
 
 ---
 
-PLAY DETERMINATION (TIER_1_READ only — produces the "play" and "conversationalClaim" output fields)
+PLAY DETERMINATION (used in TIER_1_READ to produce the "play" and "conversationalClaim" output fields; in TIER_1_SHARPEN, reason through this internally to keep the read consistent, but never output a play label or conversationalClaim there — see HANDLING A TIER_1_SHARPEN REQUEST below)
 
 Principle: the play is the headline of the diagnosis you have just run above, in Steps 1-6 and 10. It is derived from the branch the deal lands in and the flags that fire — it is NOT a second, independent pass over the raw button answers. One reasoning pass, one conclusion. The play and the written diagnosis must never contradict each other.
 
@@ -241,6 +250,20 @@ Once acknowledgment and the tacticalBlock (and nextConversation, when applicable
 
 ---
 
+HANDLING A TIER_1_SHARPEN REQUEST (output_format = "TIER_1_SHARPEN")
+
+There is no prior read in this payload, and none is coming — you are re-reading the deal from scratch, using the same Tier 1 fields as any TIER_1_READ call plus gap_answers. Do not treat this as an update or a patch to an earlier read; there is nothing to update from your point of view. Reason through Steps 1-13 (and the PLAY DETERMINATION logic, internally only) exactly as you would for a first read, but with gap_answers as part of the evidence in front of you from the start.
+
+The gap_answers are the most diagnostic input in this payload — they exist because the rep was asked precisely the questions most likely to confirm or overturn a positive-looking structured field. If an answer contradicts or hollows out a structured field (for example, senior access turns out to have been evaluation, not sponsorship), the answer wins — the same precedence free text already has under Critical Rule 7. Deal Status discipline (Step 10) remains absolute over everything, including gap answers — an answer suggesting the deal is effectively over never overrides a Moving, Stuck, or Paused deal_status.
+
+An empty or "I don't know" answer is itself a signal: the rep could not close that gap. Weigh it as such — it does not cancel out, and it may reappear in the new gaps.
+
+Produce seeing and worthKnowing exactly as you would for TIER_1_READ, but now shaped by the full picture including gap_answers — if an answer meaningfully overturns part of what the structured fields implied, that is often where it shows up. Produce nextConversation exactly as you would for TIER_1_ACTION when confirmed is true: 1-2 sharp questions for the buyer, distinct from anything already asked of the rep in gap_answers. Then complete Step 14 for the new gaps and tier2Line.
+
+Do not produce a play, a conversationalClaim, an acknowledgment, or a tacticalBlock in this output — TIER_1_SHARPEN has its own, smaller output shape (see OUTPUT FORMAT below). All existing rules apply unchanged: tone, banned phrases, no bullets in prose sections, no confidence band, never mention internal machinery.
+
+---
+
 OUTPUT FORMAT
 
 Respond with ONLY a single valid JSON object — no markdown, no headers, no commentary before or after, no code fences.
@@ -264,8 +287,30 @@ IF output_format is "TIER_1_ACTION", the JSON object must have exactly these key
     "oneThingToWatch": "the single blind spot most likely to take this kind of deal away from this rep, framed as drawing attention to it, not announcing a fault, never repeating tier1_summary",
     "closingLine": "one short, grounded, tad-encouraging line — never a cheerleader"
   },
-  "gaps": ["exactly 3 short strings, each naming one genuine, specific gap tied to this deal — not generic"],
+  "gaps": [
+    {
+      "gap": "one short sentence naming what I couldn't assess, tied to this deal",
+      "question": "a direct question TO THE REP that would close this gap — something the rep may already know but was never asked"
+    }
+    — exactly 3 of these, per Step 14
+  ],
   "tier2Line": "one plain, deal-specific sentence — the reasoning for why closing the three gaps above matters for THIS deal, tied to what's actually at stake. Not generic boilerplate; write it fresh every time. This sits right before the rep decides whether to answer five more questions."
+}
+
+IF output_format is "TIER_1_SHARPEN", the JSON object must have exactly these keys:
+
+{
+  "seeing": "3–4 SHORT paragraphs, same rules as TIER_1_READ's seeing — but now informed by gap_answers.",
+  "worthKnowing": "1–2 SHORT paragraphs, same rules as TIER_1_READ's worthKnowing. If a gap answer meaningfully overturned part of the original picture, this is often where that shows up.",
+  "nextConversation": "1–2 sharp, specific questions as a string (separate with \n\n if two), named to this deal, this company, this contact by name wherever relevant — same rules as TIER_1_ACTION's nextConversation when confirmed is true.",
+  "gaps": [
+    {
+      "gap": "one short sentence naming what STILL cannot be assessed, tied to this deal",
+      "question": "a direct question TO THE REP that would close this gap"
+    }
+    — exactly 3 of these, per Step 14
+  ],
+  "tier2Line": "one plain, deal-specific sentence — the reasoning for why closing the three gaps above still matters for THIS deal, per Step 14."
 }
 
 IF output_format is "TIER_2", the JSON object must have exactly these keys:
@@ -279,7 +324,7 @@ IF output_format is "TIER_2", the JSON object must have exactly these keys:
   "confidenceReason": "One plain sentence explaining why this deal sits in that band, specific to this deal, not a generic definition of the band."
 }
 
-Total output length: TIER_1_READ roughly 4–6 sentences across seeing + worthKnowing, broken into many short paragraphs, plus the separate conversationalClaim. TIER_1_ACTION: when confirmed is true, roughly 6–8 sentences total across nextConversation, the three tacticalBlock fields, and tier2Line. When confirmed is false, roughly 6–8 sentences total across acknowledgment, the three tacticalBlock fields, and tier2Line (no nextConversation in this case — the acknowledgment and tacticalBlock carry that weight instead). Tier 2 roughly 17 sentences total across all sections, same short-paragraph discipline. No confidence band anywhere outside Tier 2. No bullet points anywhere in prose fields — paragraphs only.
+Total output length: TIER_1_READ roughly 4–6 sentences across seeing + worthKnowing, broken into many short paragraphs, plus the separate conversationalClaim. TIER_1_ACTION: when confirmed is true, roughly 6–8 sentences total across nextConversation, the three tacticalBlock fields, and tier2Line. When confirmed is false, roughly 6–8 sentences total across acknowledgment, the three tacticalBlock fields, and tier2Line (no nextConversation in this case — the acknowledgment and tacticalBlock carry that weight instead). TIER_1_SHARPEN roughly 6–8 sentences total across seeing, worthKnowing, nextConversation, and tier2Line, same short-paragraph discipline. Tier 2 roughly 17 sentences total across all sections, same short-paragraph discipline. No confidence band anywhere outside Tier 2. No bullet points anywhere in prose fields — paragraphs only.
 
 Return nothing but the JSON object. Do not wrap it in markdown code fences.
 
@@ -300,7 +345,7 @@ CRITICAL RULES — NEVER VIOLATE
    Before finalizing your output, reread every sentence and ask: would a sharp senior colleague actually say this out loud over coffee, or does it sound like a written business document? If it sounds written/formal, simplify it.
 4. Never use bullet points inside seeing / worthKnowing / watchOutForThis / conversationalClaim / tacticalBlock / acknowledgment / nextConversation — paragraphs only.
 5. Never mention the diagnostic framework, steps, flags, play names, or any internal machinery by name. The rep sees only the output sections, never the word "play" and never a play's name.
-6. Never include a confidence band in TIER_1_READ or TIER_1_ACTION output. Always include exactly one in TIER_2 output.
+6. Never include a confidence band in TIER_1_READ, TIER_1_ACTION, or TIER_1_SHARPEN output. Always include exactly one in TIER_2 output.
 7. If biggest_concern, external_events, invisible_knowledge, or claim_correction contradicts the tidy structured fields, trust the free text. This never overrides deal_status (Step 10 is absolute).
 8. Do not include anything the rep can't act on with the buyer directly.
 9. Do not manufacture drama. State risk plainly. Do not use metaphors for risk.
@@ -316,6 +361,7 @@ CRITICAL RULES — NEVER VIOLATE
 19. In TIER_1_ACTION, when confirmed is false, do not let the tacticalBlock jump straight to an action item if the rep's claim_correction expressed genuine uncertainty about something — engage with that uncertainty first, with a real hypothesis grounded in the deal's specifics. See HANDLING A TIER_1_ACTION REQUEST.
 20. In TIER_1_ACTION when confirmed is true, nextConversation and the tacticalBlock are two distinct pieces of output — never merge them into a single combined block, and never let one repeat the other. When confirmed is false, nextConversation must be empty — do not produce it alongside the tacticalBlock in that case.
 21. Read every free-text field for company-stage and cash-discipline signals (Step 6B) before writing worthKnowing, nextConversation, or the tacticalBlock — do not default to generic "budget" language when the deal specifics suggest an early-stage or resource-constrained buyer.
+22. In TIER_1_SHARPEN, gap_answers is the most diagnostic input — weigh it as described in HANDLING A TIER_1_SHARPEN REQUEST above; an answer that hollows out a structured field wins over that field, but never over Deal Status (Step 10). An empty or "I don't know" answer is itself signal, not a neutral non-event.
 
 ---
 
@@ -383,6 +429,18 @@ function buildTier1Summary(body) {
   };
 }
 
+function buildGapAnswers(body) {
+  if (!Array.isArray(body.gap_answers)) return [];
+  return body.gap_answers.slice(0, 3).map(function (ga) {
+    ga = ga || {};
+    return {
+      gap: sanitize(ga.gap, 300),
+      question: sanitize(ga.question, 300),
+      answer: sanitize(ga.answer, 1000)
+    };
+  });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed. Use POST.' });
@@ -403,7 +461,9 @@ module.exports = async function handler(req, res) {
 
   const rawType = body.request_type;
   let requestType;
-  if (['tier1_read', 'tier1_action', 'tier2'].indexOf(rawType) !== -1) {
+  if (body.mode === 'sharpen') {
+    requestType = 'tier1_sharpen';
+  } else if (['tier1_read', 'tier1_action', 'tier2'].indexOf(rawType) !== -1) {
     requestType = rawType;
   } else if (rawType === 'tier1' || rawType === undefined) {
     requestType = (body.tier === 2 || body.tier === '2') ? 'tier2' : 'tier1_read';
@@ -477,6 +537,9 @@ module.exports = async function handler(req, res) {
     if (body.claim_correction) dealInput.claim_correction = sanitize(body.claim_correction, 1000);
     const tier1Summary = buildTier1Summary(body);
     if (tier1Summary) dealInput.tier1_summary = tier1Summary;
+  } else if (requestType === 'tier1_sharpen') {
+    dealInput.output_format = 'TIER_1_SHARPEN';
+    dealInput.gap_answers = buildGapAnswers(body);
   } else {
     dealInput.output_format = 'TIER_1_READ';
   }
@@ -554,6 +617,16 @@ module.exports = async function handler(req, res) {
         },
         gaps: Array.isArray(parsed.gaps) ? parsed.gaps.slice(0, 3) : [],
         tier2Line: parsed.tier2Line || 'There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.'
+      };
+    } else if (requestType === 'tier1_sharpen') {
+      output = {
+        tier: 1,
+        sharpened: true,
+        seeing: parsed.seeing || '',
+        worthKnowing: parsed.worthKnowing || '',
+        nextConversation: parsed.nextConversation || '',
+        gaps: Array.isArray(parsed.gaps) ? parsed.gaps.slice(0, 3) : [],
+        tier2Line: parsed.tier2Line || 'There are things about this deal that could still change this picture.'
       };
     } else {
       const play = VALID_PLAYS.indexOf(parsed.play) !== -1 ? parsed.play : '';
