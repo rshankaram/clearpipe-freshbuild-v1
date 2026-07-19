@@ -252,6 +252,14 @@
     padding-left:18px;
   }
   .gaps-list li{margin-bottom:4px;}
+  .gap-card{padding:16px 16px;margin-bottom:12px;}
+  .gap-card:last-child{margin-bottom:0;}
+  .gap-card textarea{min-height:56px;}
+  .gaps-sharpen-note{
+    font-size:14px;
+    color:var(--ink-soft);
+    margin:10px 0 0;
+  }
   .tier2-note{
     font-size:14px;
     color:var(--ink-soft);
@@ -626,7 +634,7 @@
 
   <div class="loading" id="loading-view">
     <div class="spinner"></div>
-    Reading this deal the way I'd read it if you were telling me across the table.
+    <span id="loading-text">Reading this deal the way I'd read it if you were telling me across the table.</span>
   </div>
 
   <div class="api-error" id="api-error"></div>
@@ -679,8 +687,21 @@
 
     <div class="out-section" id="gaps-section" style="display:none;">
       <h2>What I couldn't assess</h2>
-      <ul class="gaps-list" id="out-gaps"></ul>
-      <p class="tier2-note" id="out-tier2-line"></p>
+
+      <div id="gaps-interactive">
+        <div id="gap-cards"></div>
+        <div class="error-msg" id="gaps-error">Answer at least one — even a rough answer sharpens the read.</div>
+        <div class="submit-bar">
+          <button type="button" class="tier2-btn enabled" id="sharpen-btn">Sharpen this read</button>
+        </div>
+        <p class="gaps-sharpen-note">Blank answers are fine — not knowing is information too.</p>
+      </div>
+
+      <div id="gaps-plain" style="display:none;">
+        <ul class="gaps-list" id="out-gaps"></ul>
+      </div>
+
+      <p class="tier2-note" id="out-tier2-line" style="display:none;"></p>
     </div>
 
     <div class="tier2-cta-row" id="tier2-cta-row" style="display:none;">
@@ -893,6 +914,9 @@
   let tier1SeeingText = '';
   let tier1WorthKnowingText = '';
   let pendingDownloadSource = null; // 'tier1' or 'tier2'
+  let currentGaps = []; // {gap, question} objects from the most recent TIER_1_ACTION response
+  let sharpened = false; // true once the one allowed sharpen round has happened for this deal
+  const DEFAULT_LOADING_TEXT = "Reading this deal the way I'd read it if you were telling me across the table.";
 
   document.querySelectorAll('#deal-form .btn-group, #deal-form .btn-group-help').forEach(function(group){
     const key = group.getAttribute('data-group');
@@ -991,6 +1015,7 @@
 
     form.style.display = 'none';
     document.getElementById('privacy-banner').style.display = 'none';
+    document.getElementById('loading-text').textContent = DEFAULT_LOADING_TEXT;
     document.getElementById('loading-view').classList.add('show');
     document.getElementById('submit-btn').disabled = true;
 
@@ -1075,6 +1100,7 @@
     }
 
     document.getElementById('tier2-form-view').style.display = 'none';
+    document.getElementById('loading-text').textContent = DEFAULT_LOADING_TEXT;
     document.getElementById('loading-view').classList.add('show');
     document.getElementById('tier2-submit-btn').disabled = true;
 
@@ -1125,6 +1151,8 @@
     tacticalBlockData = null;
     tacticalAcknowledgment = '';
     actionNextConversationText = '';
+    currentGaps = [];
+    sharpened = false;
 
     // Screen 1: the read + claim only. "What to do about it" stays hidden until
     // the rep confirms or corrects the claim.
@@ -1207,21 +1235,163 @@
     document.getElementById('tactical-closing').textContent = tacticalBlockData.closingLine || '';
     document.getElementById('tactical-card').style.display = 'block';
 
-    const gaps = Array.isArray(data.gaps) ? data.gaps : [];
+    const gaps = Array.isArray(data.gaps) ? data.gaps.slice(0, 3) : [];
+    currentGaps = gaps;
+    sharpened = false;
     const gapsSection = document.getElementById('gaps-section');
+    const gapsInteractive = document.getElementById('gaps-interactive');
+    const gapsPlain = document.getElementById('gaps-plain');
+    const tier2LineEl = document.getElementById('out-tier2-line');
+
+    if(gaps.length){
+      renderGapCards(gaps);
+      document.getElementById('gaps-error').classList.remove('show');
+      gapsInteractive.style.display = 'block';
+      gapsPlain.style.display = 'none';
+      // tier2Line and the Tier 2 CTA are held back until after the sharpened read.
+      tier2LineEl.style.display = 'none';
+      tier2LineEl.textContent = '';
+      gapsSection.style.display = 'block';
+      document.getElementById('tier2-cta-row').style.display = 'none';
+    } else {
+      // No gaps came back to sharpen — fall back to offering Tier 2 directly, as before.
+      gapsSection.style.display = 'none';
+      document.getElementById('tier2-cta-btn').onclick = function(){
+        document.getElementById('output-view').style.display = 'none';
+        document.getElementById('tier2-form-view').style.display = 'block';
+        window.scrollTo(0,0);
+      };
+      document.getElementById('tier2-cta-row').style.display = 'block';
+    }
+
+    document.getElementById('download-row-tier1').style.display = 'block';
+  }
+
+  function renderGapCards(gaps){
+    const container = document.getElementById('gap-cards');
+    container.innerHTML = '';
+    gaps.forEach(function(g, idx){
+      const card = document.createElement('div');
+      card.className = 'card gap-card';
+
+      const label = document.createElement('div');
+      label.className = 'q-label';
+      label.textContent = (g && g.gap) ? g.gap : '';
+
+      const sub = document.createElement('div');
+      sub.className = 'q-sub';
+      sub.textContent = (g && g.question) ? g.question : '';
+
+      const textarea = document.createElement('textarea');
+      textarea.id = 'gap-answer-' + idx;
+      textarea.placeholder = "Answer if you know — leave blank if you honestly don't";
+
+      card.appendChild(label);
+      card.appendChild(sub);
+      card.appendChild(textarea);
+      container.appendChild(card);
+    });
+  }
+
+  document.getElementById('sharpen-btn').addEventListener('click', async function(){
+    const errorEl = document.getElementById('gaps-error');
+    const apiErrorEl = document.getElementById('api-error');
+    apiErrorEl.classList.remove('show');
+
+    const answers = currentGaps.map(function(g, idx){
+      return {
+        gap: (g && g.gap) ? g.gap : '',
+        question: (g && g.question) ? g.question : '',
+        answer: val('gap-answer-' + idx)
+      };
+    });
+    const anyAnswered = answers.some(function(a){ return a.answer && a.answer.trim(); });
+    if(!anyAnswered){
+      errorEl.classList.add('show');
+      return;
+    }
+    errorEl.classList.remove('show');
+
+    document.getElementById('output-view').style.display = 'none';
+    document.getElementById('loading-text').textContent = "Re-reading the deal with what you've just told me.";
+    document.getElementById('loading-view').classList.add('show');
+
+    try {
+      const payload = Object.assign({}, tier1Payload, {
+        mode: 'sharpen',
+        gap_answers: answers
+      });
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if(!res.ok){
+        const errBody = await res.json().catch(function(){ return {}; });
+        throw new Error(errBody.error || ('Request failed (' + res.status + ')'));
+      }
+
+      const data = await res.json();
+      renderSharpenedRead(data);
+    } catch(err){
+      document.getElementById('loading-view').classList.remove('show');
+      document.getElementById('output-view').style.display = 'block';
+      apiErrorEl.textContent = 'Something went wrong sharpening this read: ' + err.message + '. Please try again.';
+      apiErrorEl.classList.add('show');
+    }
+  });
+
+  function renderSharpenedRead(data){
+    document.getElementById('loading-view').classList.remove('show');
+    sharpened = true;
+
+    document.getElementById('out-seeing').innerHTML = toParas(data.seeing);
+    document.getElementById('out-worth-knowing').innerHTML = toParas(data.worthKnowing);
+    tier1SeeingText = data.seeing || '';
+    tier1WorthKnowingText = data.worthKnowing || '';
+
+    actionNextConversationText = data.nextConversation || '';
+    // The sharpened read has no tacticalBlock — clear it so a later download doesn't
+    // include a "What I'd do next" block that's no longer shown on screen.
+    tacticalBlockData = null;
+    tacticalAcknowledgment = '';
+    document.getElementById('tactical-card').style.display = 'none';
+
+    document.getElementById('action-section').style.display = 'block';
+    const nextConvSection = document.getElementById('next-conversation-section');
+    if(actionNextConversationText.trim()){
+      document.getElementById('out-next-conversation').innerHTML = toParas(actionNextConversationText);
+      nextConvSection.style.display = 'block';
+    } else {
+      nextConvSection.style.display = 'none';
+    }
+
+    const gaps = Array.isArray(data.gaps) ? data.gaps.slice(0, 3) : [];
+    currentGaps = gaps;
+    const gapsSection = document.getElementById('gaps-section');
+    const gapsInteractive = document.getElementById('gaps-interactive');
+    const gapsPlain = document.getElementById('gaps-plain');
+    const tier2LineEl = document.getElementById('out-tier2-line');
+
+    gapsInteractive.style.display = 'none';
     if(gaps.length){
       const gapsList = document.getElementById('out-gaps');
       gapsList.innerHTML = '';
       gaps.forEach(function(g){
         const li = document.createElement('li');
-        li.textContent = g;
+        li.textContent = (g && g.gap) ? g.gap : '';
         gapsList.appendChild(li);
       });
-      document.getElementById('out-tier2-line').textContent = data.tier2Line || '';
+      gapsPlain.style.display = 'block';
       gapsSection.style.display = 'block';
     } else {
+      gapsPlain.style.display = 'none';
       gapsSection.style.display = 'none';
     }
+
+    tier2LineEl.textContent = data.tier2Line || '';
+    tier2LineEl.style.display = 'block';
 
     document.getElementById('tier2-cta-btn').onclick = function(){
       document.getElementById('output-view').style.display = 'none';
@@ -1229,7 +1399,9 @@
       window.scrollTo(0,0);
     };
     document.getElementById('tier2-cta-row').style.display = 'block';
-    document.getElementById('download-row-tier1').style.display = 'block';
+
+    document.getElementById('output-view').style.display = 'block';
+    window.scrollTo(0,0);
   }
 
   document.getElementById('claim-yes-btn').addEventListener('click', async function(){
