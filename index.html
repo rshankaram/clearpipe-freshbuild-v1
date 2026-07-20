@@ -475,6 +475,13 @@
   .download-row{
     margin-top:6px;
   }
+  .input-expectation{
+    font-size:14px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin:0 0 20px;
+    padding:0 8px;
+  }
 </style>
 </head>
 <body>
@@ -485,6 +492,8 @@
     <p class="role-label">Deal Analysis Assistant</p>
     <h1>What's really happening in this deal?</h1>
   </header>
+
+  <p class="input-expectation">The depth of what you type here decides the depth of the read you get back. Some of it may repeat your CRM — bear with us on that for now. And only what you genuinely know, not what you're assuming.</p>
 
   <div class="privacy" id="privacy-banner">
     Nothing you enter here is stored, saved, or shared. This analysis exists only for you, in this session. When you close this page, it's gone.
@@ -717,7 +726,7 @@
 
   <div id="tier2-form-view">
     <p class="section-title">The complete picture</p>
-    <p class="section-intro">Five more questions. Same rules — nothing here is stored, and this builds on the analysis you already have.</p>
+    <p class="section-intro">Five more questions. Same rules — nothing here is stored, and this builds on the analysis you already have. Think through every angle you can before answering each one — the more you give here, the more this can actually tell you.</p>
 
     <form id="tier2-form">
 
@@ -1211,6 +1220,10 @@
     tacticalBlockData = data.tacticalBlock || { whatIdDoNext:'', oneThingToWatch:'', closingLine:'' };
     tacticalAcknowledgment = data.acknowledgment || '';
     actionNextConversationText = data.nextConversation || '';
+
+    // The rep has now answered the claim (confirmed or corrected) — it doesn't need
+    // to stay on screen once "What to do about it" appears.
+    document.getElementById('claim-card').style.display = 'none';
 
     document.getElementById('action-section').style.display = 'block';
 
