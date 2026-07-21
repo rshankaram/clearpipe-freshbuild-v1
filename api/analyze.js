@@ -1,5 +1,5 @@
 // ClearPipe — Analysis endpoint (Tier 1 read, Tier 1 action / confirm-correct, and Tier 2)
-// V2.1 — probe round (gaps-as-questions + sharpen mode), 19 Jul 2026
+// V2.2 — final-read concise mode, 21 Jul 2026
 // This file must live at api/analyze.js in your repo (not at the root).
 // On GitHub: "Add file" -> "Create new file" -> type "api/analyze.js" as the filename,
 // then paste everything below. Typing the slash makes GitHub create the api folder for you.
@@ -16,6 +16,8 @@ You never produce generic output. Every observation you make must be specific to
 You never flatter the rep. You never tell them the deal looks great when it doesn't. You never soften a real risk to the point where it loses its meaning.
 
 You are speaking to an Indian B2B sales rep. Relationship-driven selling, longer cycles, conservative decision-making, multiple stakeholders, deals that live or die on trust built over time. Buyers in this context rarely say no directly — they go quiet, they defer, they stay warm while making no decision.
+
+IMPORTANT OUTPUT RULE: Start the final read with a short line: “Based on what you’ve shared, here is my analysis.” Keep the final read brief, conversational, and decisive. Do not ask for additional questions once you have enough to make a sensible read.
 
 THE MOST IMPORTANT THING ABOUT THIS OUTPUT: the rep gave you a handful of button-clicks and a few lines of free text. That is all you will get. The output cannot be a tidy summary of what they already told you — a summary does not change what the rep does next. Once the rep reaches the "what to do about it" content, its centre of gravity is ONE sharp, specific question the rep should go ask the buyer — a question they cannot currently answer, named to this contact and this company. That question is the product. Everything else in that content exists to earn that question and make it land. If your "Before your next conversation" content could apply to any deal, you have failed — rewrite it until it could only be asked of this one.
 
@@ -41,14 +43,13 @@ Tier 1 fields (always present on TIER_1_READ and TIER_1_ACTION, and carried into
 - conversation_driver: who has driven recent contact — "You" / "Equal" / "Them"
 - primary_contact_name
 - primary_contact_designation
-- met_someone_senior: Yes / No / Not yet
+- met_someone_senior: Yes / No
 - pricing_raised_by_buyer: Yes / No
-- external_events: free text describing what the buyer has actually done so far, may be empty
-- previous_loss: "Existing relationship" / "Lost before" / "New account" / "Not sure"
+- external_events: free text, may be empty
+- previous_loss: Yes / No
 - previous_loss_detail: free text, may be empty
 - winning_read: "Ahead" / "Behind" / "Too early" — the rep's own honest read on whether they're winning
-- biggest_concern: free text for what feels off, may be empty
-- what_feels_right: free text for what feels right, may be empty
+- biggest_concern: free text, may be empty
 
 TIER_1_ACTION fields (present only when output_format is "TIER_1_ACTION"):
 - play: the play you (or the prior TIER_1_READ call) already determined for this deal — one of the ten plays listed below. This is handed to you as a fact, not a question. Do not re-derive it from scratch and do not silently swap it for a different play. See "Handling a correction" below for the one exception.
@@ -86,7 +87,7 @@ Step 1 — The Gate. Look at conversation_driver.
 "Equal" → mixed signal. Note it, probe both directions lightly.
 
 Step 2 — The People Check. Look at primary_contact_designation, met_someone_senior, and (Tier 2 only) decision_authority / met_economic_buyer.
-If met_someone_senior is No or Not yet and the designation suggests a functional or operational role, this raises single-threaded contact risk — especially beyond Early stage.
+If met_someone_senior is No and the designation suggests a functional/operational role rather than a business-unit or P&L role, this is very likely a single-contact risk.
 Tier 2 only: if decision_authority is "No someone else approves" or "I'm not sure", the deal may be progressing with the wrong person driving it. If met_economic_buyer is No, the actual budget holder has never been in the room — treat this as a significant, concrete gap, not a soft one.
 Tier 2 only: if absent_stakeholder is "I don't know who should have been there" — do not call this out directly as a criticism. Instead, turn it into a forward-looking question about who else needs to be in the room next time.
 
@@ -418,11 +419,10 @@ function buildDealFields(body) {
     met_someone_senior: sanitize(body.met_someone_senior, 10),
     pricing_raised_by_buyer: sanitize(body.pricing_raised_by_buyer, 10),
     external_events: sanitize(body.external_events, 2000),
-    previous_loss: sanitize(body.previous_loss, 40),
+    previous_loss: sanitize(body.previous_loss, 10),
     previous_loss_detail: sanitize(body.previous_loss_detail, 2000),
     winning_read: sanitize(body.winning_read, 20),
-    biggest_concern: sanitize(body.biggest_concern, 2000),
-    what_feels_right: sanitize(body.what_feels_right, 2000)
+    biggest_concern: sanitize(body.biggest_concern, 2000)
   };
   return fields;
 }
@@ -622,7 +622,7 @@ module.exports = async function handler(req, res) {
           closingLine: tb.closingLine || ''
         },
         gaps: Array.isArray(parsed.gaps) ? parsed.gaps.slice(0, 3) : [],
-        tier2Line: parsed.tier2Line || 'There are things about this deal that could significantly change this picture. Answer 5 more questions to get the complete read.'
+        tier2Line: parsed.tier2Line || 'There are things about this deal that could significantly change this picture.  to get the complete read.'
       };
     } else if (requestType === 'tier1_sharpen') {
       output = {
