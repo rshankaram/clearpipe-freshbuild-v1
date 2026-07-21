@@ -494,10 +494,10 @@
   <header class="top">
     <p class="mark">ClearPipe</p>
     <p class="role-label">Deal Analysis Assistant</p>
-    <h1>What's really happening in this deal?</h1>
+    <h1>What’s really happening in this deal?</h1>
   </header>
 
-  <p class="input-expectation">The depth of what you type here decides the depth of the read you get back. Some of it may repeat your CRM — bear with us on that for now. And only what you genuinely know, not what you're assuming.</p>
+  <p class="input-expectation">Start broad. We can simplify later. For now, answer what you genuinely know — not what you’re assuming.</p>
 
   <div class="privacy" id="privacy-banner">
     Nothing you enter here is stored, saved, or shared. This analysis exists only for you, in this session. When you close this page, it's gone.
@@ -541,19 +541,19 @@
     </div>
 
     <div class="card">
-      <div class="q-label">If they did nothing about this, what happens?</div>
+      <div class="q-label">Why might this move now — if at all?</div>
       <div class="btn-group-help" data-group="pain_urgency">
         <div class="opt-item">
           <button type="button" class="opt-btn" data-value="Something breaks">Something breaks</button>
-          <div class="opt-help">a real cost to not fixing this, and they feel it</div>
+          <div class="opt-help">there is a live reason this may need to happen now</div>
         </div>
         <div class="opt-item">
           <button type="button" class="opt-btn" data-value="Nothing urgent">Nothing urgent</button>
-          <div class="opt-help">a known problem they can live with for now</div>
+          <div class="opt-help">it matters, but there is no strong push to act right now</div>
         </div>
         <div class="opt-item">
           <button type="button" class="opt-btn" data-value="Genuinely fine">Genuinely fine</button>
-          <div class="opt-help">exploring more than solving anything</div>
+          <div class="opt-help">this looks more like interest or exploration than a live need</div>
         </div>
       </div>
     </div>
@@ -578,11 +578,12 @@
     </div>
 
     <div class="card">
-      <div class="q-label">Has anyone more senior than your contact been involved?</div>
-      <div class="q-sub">A boss, a director, a founder — someone above your contact who's joined a call or been part of any conversation.</div>
-      <div class="btn-group yn" data-group="met_someone_senior">
+      <div class="q-label">Have you spoken with anyone else from their side?</div>
+      <div class="q-sub">Anyone else who has joined a call, replied directly, or become part of the conversation — not necessarily someone more senior.</div>
+      <div class="btn-group" data-group="met_someone_senior">
         <button type="button" class="opt-btn" data-value="Yes">Yes</button>
         <button type="button" class="opt-btn" data-value="No">No</button>
+        <button type="button" class="opt-btn" data-value="Not yet">Not yet</button>
       </div>
     </div>
 
@@ -596,52 +597,60 @@
     </div>
 
     <div class="card">
-      <div class="q-label">Anything happening on their side?</div>
-      <div class="q-sub">Acquisition, leadership change, reorg, budget freeze, a competing priority — anything at all. Leave blank if you genuinely don't know.</div>
-      <textarea id="external_events" placeholder="e.g. They just acquired a company in a new city and leadership is focused there"></textarea>
+      <div class="q-label">What has the buyer actually done so far?</div>
+      <div class="q-sub">Use short phrases. Mention any internal step, stakeholder involvement, follow-up, document request, commercial question, or concrete next step. Leave blank only if genuinely nothing stands out.</div>
+      <textarea id="external_events" placeholder="e.g. brought in HR head, asked for a commercial proposal, shared rollout timing, set up next meeting"></textarea>
     </div>
 
     <div class="card">
-      <div class="q-label">Have you lost a deal with this company before?</div>
-      <div class="q-sub">Same account, an earlier attempt that didn't convert — by you or anyone else at your firm.</div>
-      <div class="btn-group yn" data-group="previous_loss">
-        <button type="button" class="opt-btn" data-value="Yes">Yes</button>
-        <button type="button" class="opt-btn" data-value="No">No</button>
+      <div class="q-label">What's the history with this account?</div>
+      <div class="q-sub">Pick the closest fit. We only need the rough context for now.</div>
+      <div class="btn-group stacked" data-group="previous_loss">
+        <button type="button" class="opt-btn" data-value="Existing relationship">We already have some relationship here</button>
+        <button type="button" class="opt-btn" data-value="Lost before">We have lost here before</button>
+        <button type="button" class="opt-btn" data-value="New account">This is basically a new account for us</button>
+        <button type="button" class="opt-btn" data-value="Not sure">I'm not sure</button>
       </div>
       <div class="conditional" id="previous-loss-detail-wrap">
-        <div class="q-sub" style="margin-top:0;">What happened, as best you know it?</div>
-        <textarea id="previous_loss_detail" placeholder="e.g. Lost on price to a cheaper competitor about a year ago"></textarea>
+        <div class="q-sub" style="margin-top:0;">Anything worth noting from that history?</div>
+        <textarea id="previous_loss_detail" placeholder="e.g. lost last year on price, or already worked with another division"></textarea>
       </div>
     </div>
 
     <div class="card">
-      <div class="q-label">Your honest read right now — are you winning this?</div>
+      <div class="q-label">Your honest gut read right now</div>
       <div class="btn-group-help" data-group="winning_read">
         <div class="opt-item">
           <button type="button" class="opt-btn" data-value="Ahead">Ahead</button>
-          <div class="opt-help">this feels like mine to lose</div>
+          <div class="opt-help">this feels more in our favour than against us</div>
         </div>
         <div class="opt-item">
           <button type="button" class="opt-btn" data-value="Behind">Behind</button>
-          <div class="opt-help">someone else is ahead, or they're leaning towards no decision</div>
+          <div class="opt-help">someone else or inertia feels more likely right now</div>
         </div>
         <div class="opt-item">
           <button type="button" class="opt-btn" data-value="Too early">Too early</button>
-          <div class="opt-help">genuinely can't tell yet</div>
+          <div class="opt-help">there is not enough signal yet to call it clearly</div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="q-label">What's your biggest concern about this deal right now?</div>
-      <div class="q-sub">In your own words — the thing that's nagging at you, even if you can't fully explain why.</div>
-      <textarea id="biggest_concern" placeholder="e.g. I haven't heard from them in three weeks and I'm not sure why"></textarea>
+      <div class="q-label">What feels off?</div>
+      <div class="q-sub">One or two lines. Optional, but often the most useful thing you tell us.</div>
+      <textarea id="biggest_concern" placeholder="e.g. They stay warm, but nothing concrete is happening"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="q-label">What feels right?</div>
+      <div class="q-sub">Optional. If there is a real reason you still like this deal, say it plainly.</div>
+      <textarea id="what_feels_right" placeholder="e.g. They keep bringing the conversation back without much chasing from me"></textarea>
     </div>
 
     <div class="error-msg" id="form-error">Please fill in every field above — the button choices too — before running the analysis.</div>
 
     <div class="submit-bar">
-      <button type="submit" class="primary" id="submit-btn">Analyse this deal</button>
+      <button type="submit" class="primary" id="submit-btn">Get the Tier 1 read</button>
     </div>
   </form>
 
