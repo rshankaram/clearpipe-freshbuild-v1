@@ -560,7 +560,7 @@
         <div class="brand-mark" aria-hidden="true"></div>
         <div>ClearPipe</div>
       </div>
-      <div class="privacy-pill">Nothing you enter here is stored, saved, or shared. This analysis exists only for you in this session.</div>
+      <div class="privacy-pill">Nothing you enter here is stored, saved, or shared. This read exists only for you in this session.</div>
     </div>
 
     <div class="layout">
@@ -568,24 +568,9 @@
         <div class="panel-main">
           <div class="kicker">Deal diagnosis</div>
           <h1 id="introHeading">See what this deal is really doing.</h1>
-          <p class="lede">Two short steps. First, set the deal context. Then sharpen the picture. ClearPipe uses the first step to tighten the second, so the questions get more specific instead of just getting longer.</p>
+          <p class="lede">Two short steps. First, give me the deal context. Then provide more details. The whole form should take you less than 2 mins.</p>
 
-          <div class="spec-grid">
-            <div class="spec-card">
-              <strong>Step 1</strong>
-              <span>Get the deal reality on the table: account, stage, momentum, and who is carrying the conversation.</span>
-            </div>
-            <div class="spec-card">
-              <strong>Between steps</strong>
-              <span>Use the account name and first-page answers to build context and refine the diagnosis behind the scenes.</span>
-            </div>
-            <div class="spec-card">
-              <strong>Step 2</strong>
-              <span>Test the first hypothesis with behavior, evidence, and what feels off or right to the rep.</span>
-            </div>
-          </div>
-        </div>
-      </section>
+          
 
       <main class="panel form-panel" id="mainContent">
         <div class="progress">
@@ -603,18 +588,18 @@
         <div class="form-body">
           <form id="dealForm">
             <div class="form-step active" id="step1">
-              <h2 class="step-heading">Set the deal context</h2>
-              <p class="step-copy">Start with what kind of deal this is, where it stands, and who is carrying it. Keep it factual. Approximate is fine where precision is not available.</p>
+              <h2 class="step-heading">Please set the deal context</h2>
+              <p class="step-copy">Start with what kind of deal this is, where it stands, and who is carrying it. Keep it factual. Approximate is fine.</p>
 
               <div class="field-grid">
                 <div class="field-row-2">
                   <div class="field">
                     <label for="companyName">Who is the account?</label>
-                    <input class="input" id="companyName" name="companyName" placeholder="Example: Mastek" required />
+                    <input class="input" id="companyName" name="companyName" placeholder="Example: Unilever" required />
                   </div>
                   <div class="field">
                     <label for="dealName">What are you selling?</label>
-                    <input class="input" id="dealName" name="dealName" placeholder="Example: GTM consulting" required />
+                    <input class="input" id="dealName" name="dealName" placeholder="Example: IT Services" required />
                   </div>
                 </div>
 
@@ -627,7 +612,7 @@
                   <div class="field">
                     <label for="dealStage">Where does the deal stand right now?</label>
                     <select class="select" id="dealStage" name="dealStage" required>
-                      <option value="">Choose one</option>
+                      <option value="">Pick one</option>
                       <option>Early</option>
                       <option>Middle</option>
                       <option>Late</option>
@@ -637,9 +622,9 @@
 
                 <div class="field-row-2">
                   <div class="field">
-                    <label for="dealStatus">What is it doing right now?</label>
+                    <label for="dealStatus">What stage is the deal in, right now?</label>
                     <select class="select" id="dealStatus" name="dealStatus" required>
-                      <option value="">Choose one</option>
+                      <option value="">Pick one</option>
                       <option>Moving</option>
                       <option>Stuck</option>
                       <option>Paused</option>
@@ -648,7 +633,7 @@
                   <div class="field">
                     <label for="conversationDriver">Who is chasing whom right now?</label>
                     <select class="select" id="conversationDriver" name="conversationDriver" required>
-                      <option value="">Choose one</option>
+                      <option value="">Pick one</option>
                       <option>Mostly me</option>
                       <option>Fairly equal</option>
                       <option>Mostly them</option>
@@ -669,26 +654,26 @@
               </div>
 
               <div class="actions">
-                <div class="ghost-note">Step 1 should be enough to form a first hypothesis.</div>
+                <div class="ghost-note">Step 1 should be enough to form a first read.</div>
                 <button type="button" class="button" id="toStep2">Continue to step 2</button>
               </div>
             </div>
 
             <div class="form-step" id="step2">
               <h2 class="step-heading">Sharpen the read</h2>
-              <p class="step-copy">Now pressure-test the first hypothesis with behavior, evidence, and your own honest reading of what feels off and what still feels real.</p>
+              <p class="step-copy">Use the details you already have to see what the buyer is doing and what still feels true.</p>
 
               <div class="field-grid">
                 <div class="field">
-                  <label for="buyerActions">What has the buyer actually done so far?</label>
+                  <label for="buyerActions">What has the buyer done so far?</label>
                   <textarea class="textarea" id="buyerActions" name="buyerActions" placeholder="What have they done beyond sounding interested?"></textarea>
                 </div>
 
                 <div class="field-row-2">
                   <div class="field">
-                    <label for="pricingRaisedByBuyer">Have they moved price or commercials from their side, not yours?</label>
+                    <label for="pricingRaisedByBuyer">Has the buyer moved price or commercials from their side?</label>
                     <select class="select" id="pricingRaisedByBuyer" name="pricingRaisedByBuyer" required>
-                      <option value="">Choose one</option>
+                      <option value="">Pick one</option>
                       <option>Yes</option>
                       <option>No</option>
                       <option>Not sure</option>
@@ -697,7 +682,7 @@
                   <div class="field">
                     <label for="metSomeoneSenior">Have you spoken with anyone else from their side?</label>
                     <select class="select" id="metSomeoneSenior" name="metSomeoneSenior" required>
-                      <option value="">Choose one</option>
+                      <option value="">Pick one</option>
                       <option>Yes</option>
                       <option>No</option>
                       <option>Not yet</option>
@@ -709,7 +694,7 @@
                   <div class="field">
                     <label for="winningRead">What is your honest gut read right now?</label>
                     <select class="select" id="winningRead" name="winningRead" required>
-                      <option value="">Choose one</option>
+                      <option value="">Pick one</option>
                       <option>Ahead</option>
                       <option>Behind</option>
                       <option>Too early</option>
@@ -718,7 +703,7 @@
                   <div class="field">
                     <label for="painUrgency">If you do nothing, what happens on their side?</label>
                     <select class="select" id="painUrgency" name="painUrgency" required>
-                      <option value="">Choose one</option>
+                      <option value="">Pick one</option>
                       <option>Something breaks</option>
                       <option>Nothing urgent</option>
                       <option>Genuinely fine</option>
@@ -732,7 +717,7 @@
                     <textarea class="textarea" id="biggestConcern" name="biggestConcern" placeholder="Write the thing that keeps nagging you."></textarea>
                   </div>
                   <div class="field">
-                    <label for="whatFeelsRight">What feels right, if anything?</label>
+                    <label for="whatFeelsRight">What still feels real, if anything?</label>
                     <textarea class="textarea" id="whatFeelsRight" name="whatFeelsRight" placeholder="Name what still feels real or promising."></textarea>
                   </div>
                 </div>
@@ -748,8 +733,8 @@
 
         <div class="processing" id="processing">
           <div class="processing-box">
-            <div class="pulse"><i></i><i></i><i></i> Tightening the read and pulling context</div>
-            <div class="step-copy" style="margin:0;">Using the first-page context to sharpen the diagnosis before producing the read.</div>
+            <div class="pulse"><i></i><i></i><i></i> Using the first page to tighten the read</div>
+            <div class="step-copy" style="margin:0;">Using the first-page context to make the read sharper before showing it.</div>
           </div>
         </div>
 
@@ -789,12 +774,12 @@
 
           <div class="calibration" id="calibrationSection">
             <label for="calibrationText">If I’m missing a key detail or a fact changed, refine it here.</label>
-            <textarea class="textarea" id="calibrationText" placeholder="Add the missing fact, correction, or new ground reality." aria-describedby="calibrationNote"></textarea>
+            <textarea class="textarea" id="calibrationText" placeholder="Add the missing fact or correction." aria-describedby="calibrationNote"></textarea>
             <div class="calibration-actions">
-              <button type="button" class="button" id="refineButton">Update the diagnosis</button>
-              <button type="button" class="button-secondary" id="resetButton">Start a new read</button>
+              <button type="button" class="button" id="refineButton">Update the read</button>
+              <button type="button" class="button-secondary" id="resetButton">Start over</button>
             </div>
-            <div class="microcopy" id="calibrationNote">One optional calibration pass only. No forced loops.</div>
+            <div class="microcopy" id="calibrationNote">One optional correction only.</div>
           </div>
 
           <div class="footer-tools">
@@ -938,7 +923,7 @@
 
         if (!response.ok) {
           const err = await response.json().catch(() => ({}));
-          throw new Error(err.error || 'The analysis service returned an error.');
+          throw new Error(err.error || 'The read could not be generated. Try again in a moment.');
         }
 
         const data = await response.json();
