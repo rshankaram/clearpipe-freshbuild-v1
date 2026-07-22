@@ -27,7 +27,7 @@
       --radius-lg: 24px;
       --shadow-sm: 0 8px 24px rgba(26, 22, 18, 0.06);
       --shadow-lg: 0 20px 50px rgba(26, 22, 18, 0.10);
-      --container: 1080px;
+      --container: 1400px;
     }
 
     * { box-sizing: border-box; }
@@ -568,19 +568,19 @@
         <div class="panel-main">
           <div class="kicker">Deal diagnosis</div>
           <h1 id="introHeading">See what this deal is really doing.</h1>
-          <p class="lede">Two short steps. First, give me the deal context. Then provide more details. The whole form should take you less than 2 mins.</p>
+          <p class="lede">A simple flow to capture the deal context and sharpen the read.</p>
 
           
 
       <main class="panel form-panel" id="mainContent">
         <div class="progress">
           <div class="progress-row">
-            <div class="progress-title" id="progressTitle">Step 1 of 2 · Set the deal context</div>
+            <div class="progress-title" id="progressTitle">Step 1 of 2 · Start with the deal context</div>
             <div class="progress-title" id="progressMeta">Context first</div>
           </div>
           <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
           <div class="step-labels">
-            <div class="step-label active" id="labelStep1">Step 1 of 2<br>Set the deal context</div>
+            <div class="step-label active" id="labelStep1">Context</div>
             <div class="step-label" id="labelStep2">Step 2 of 2<br>Sharpen the read</div>
           </div>
         </div>
@@ -588,7 +588,7 @@
         <div class="form-body">
           <form id="dealForm">
             <div class="form-step active" id="step1">
-              <h2 class="step-heading">Please set the deal context</h2>
+              <h2 class="step-heading">Start with the deal context</h2>
               <p class="step-copy">Start with what kind of deal this is, where it stands, and who is carrying it. Keep it factual. Approximate is fine.</p>
 
               <div class="field-grid">
@@ -823,7 +823,7 @@
       labelStep1.classList.toggle('active', isStep1);
       labelStep2.classList.toggle('active', !isStep1);
       progressFill.style.width = isStep1 ? '50%' : '100%';
-      progressTitle.textContent = isStep1 ? 'Step 1 of 2 · Set the deal context' : 'Step 2 of 2 · Sharpen the read';
+      progressTitle.textContent = isStep1 ? 'Step 1 of 2 · Start with the deal context' : 'Step 2 of 2 · Sharpen the read';
       progressMeta.textContent = isStep1 ? 'Context first' : 'Evidence next';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
