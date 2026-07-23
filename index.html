@@ -152,7 +152,7 @@
       font-size: 15.5px;
       line-height: 1.6;
       color: var(--muted);
-      margin: 0 0 16px;
+      margin: 0 0 10px;
     }
 
     .intro-step p:last-child { margin-bottom: 0; }
@@ -183,13 +183,6 @@
       padding: 28px 28px 0;
     }
 
-    .progress-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-    }
-
     .progress-title {
       font-size: 14px;
       color: var(--muted);
@@ -212,30 +205,6 @@
       transition: width 220ms ease;
     }
 
-    .step-labels {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 2px;
-    }
-
-    .step-label {
-      padding: 12px 14px;
-      border-radius: 16px;
-      border: 1px solid rgba(38,35,31,0.08);
-      background: #f4f1eb;
-      color: var(--faint);
-      font-size: 13px;
-      line-height: 1.4;
-      font-weight: 600;
-    }
-
-    .step-label.active {
-      background: var(--primary-soft);
-      color: var(--primary);
-      border-color: rgba(1,105,111,0.14);
-    }
-
     .form-body {
       padding: 24px 28px 28px;
     }
@@ -243,15 +212,8 @@
     .form-step { display: none; }
     .form-step.active { display: block; }
 
-    .step-heading {
-      font-size: 28px;
-      line-height: 1.1;
-      letter-spacing: -0.04em;
-      margin: 0 0 8px;
-    }
-
     .step-copy {
-      margin: 0 0 22px;
+      margin: 4px 0 22px;
       color: var(--muted);
       line-height: 1.65;
       font-size: 15px;
@@ -461,25 +423,20 @@
 
     .results.active { display: block; }
 
-    .results-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 10px;
+    .results h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      letter-spacing: -0.02em;
     }
 
-    .results-header h2 {
-      margin: 0 0 6px;
-      font-size: 24px;
-      letter-spacing: -0.03em;
-    }
-
-    .results-header p {
+    .results ul {
       margin: 0;
-      color: var(--muted);
-      line-height: 1.55;
-      font-size: 14px;
+      padding-left: 20px;
+      display: grid;
+      gap: 10px;
+      font-size: 15px;
+      line-height: 1.68;
+      color: var(--text);
     }
 
     .edit-answers-row {
@@ -569,6 +526,67 @@
 
     .hidden { display: none !important; }
 
+    #actionsPanel { margin-top: 24px; }
+    #actionsPanel .calibration { margin-top: 0; padding-top: 0; border-top: none; }
+
+    /* Print-only summary: built and populated just before window.print() is
+       called, so the PDF a rep saves contains only the deal header and the
+       read itself -- never the form fields, buttons, or calibration box. */
+    .print-only { display: none; }
+
+    #printSummary .print-heading {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0 0 4px;
+    }
+
+    #printSummary .print-subheading {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0 0 18px;
+    }
+
+    #printSummary .print-confidence {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f3f0ea;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    #printSummary .print-section {
+      margin-top: 18px;
+    }
+
+    #printSummary .print-section h3 {
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    #printSummary .print-section p,
+    #printSummary .print-section li {
+      font-size: 14px;
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    #printSummary ul,
+    #printSummary ol {
+      margin: 0;
+      padding-left: 20px;
+      display: grid;
+      gap: 8px;
+    }
+
+    @media print {
+      .shell > *:not(#printSummary) { display: none !important; }
+      #printSummary.print-only { display: block !important; }
+    }
+
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
     }
@@ -579,7 +597,6 @@
       .field-row-2 { grid-template-columns: 1fr; }
       .actions { flex-direction: column-reverse; align-items: stretch; }
       .button, .button-secondary { width: 100%; }
-      .step-labels { grid-template-columns: 1fr; }
       .tile-group { grid-template-columns: 1fr; }
     }
   </style>
@@ -600,41 +617,55 @@
           <h1 id="introHeading">Deal Diagnosis</h1>
 
           <div class="intro-step active" id="introStep1">
-            <p>Get an objective analysis of this deal. It might shine a light on what you are missing. Help improve your chances of winning.</p>
-            <p><strong>Data Confidentiality:</strong> Nothing you enter here is stored, saved, or shared. This analysis exists for you only in this session. Once you close this window, it's gone forever.</p>
+            <p>Get an objective analysis of this deal.</p>
+            <p>It might shine a light on what you are missing.</p>
+            <p>Help improve your chances of winning.</p>
+            <p><strong>Data Confidentiality:</strong> Nothing you enter here is stored, saved, or shared.</p>
+            <p>This analysis exists for you only in this session.</p>
+            <p>Once you close this window, it's gone forever.</p>
           </div>
 
           <div class="intro-step" id="introStep2">
-            <p>Thanks for sharing that context. Looks interesting.</p>
-            <p>Please answer a few more questions. The more info you share, the better the analysis.</p>
-            <p><strong>Caution:</strong> please only enter facts and information you can corroborate. Please don't enter your judgements, inference, or assumptions.</p>
+            <p>Thanks for sharing that context.</p>
+            <p>Looks interesting.</p>
+            <p>Please answer a few more questions.</p>
+            <p>The more info you share, the better the analysis.</p>
+            <p><strong>Caution:</strong> Please provide facts and information for which you have evidence.</p>
+            <p>Please don't enter your judgements, assumptions, or inferences.</p>
           </div>
 
           <div class="intro-step" id="introStep3">
-            <p><strong>Based on what you've shared, I couldn't determine</strong></p>
-            <ul class="lhs-gaps" id="lhsGapsOutput"></ul>
+            <div class="confidence" id="confidenceChip">Initial read</div>
+            <p style="margin-top:14px;"><strong>Based on what you've shared, here is the analysis.</strong></p>
+
+            <div class="result-section" style="margin-top:6px;">
+              <h3>What's likely happening now</h3>
+              <p id="whatsHappeningOutput"></p>
+            </div>
+
+            <div class="result-section">
+              <h3>Which way this could go</h3>
+              <p id="whichWayOutput"></p>
+            </div>
+
+            <div class="result-section">
+              <h3>What I'd suggest</h3>
+              <ol id="suggestionsOutput"></ol>
+            </div>
           </div>
         </div>
       </aside>
 
       <main class="panel form-panel" id="mainContent">
         <div class="progress" id="progressBlock">
-          <div class="progress-row">
-            <div class="progress-title" id="progressTitle">Step 1 of 2 · Start with the deal context</div>
-            <div class="progress-title" id="progressMeta">Context first</div>
-          </div>
+          <div class="progress-title" id="progressTitle">Step 1 of 2</div>
           <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-          <div class="step-labels">
-            <div class="step-label active" id="labelStep1">Context</div>
-            <div class="step-label" id="labelStep2">Step 2 of 2<br>Sharpen the read</div>
-          </div>
         </div>
 
         <div class="form-body" id="formBody">
           <form id="dealForm" novalidate>
             <div class="form-step active" id="step1">
-              <h2 class="step-heading">Start with the deal context</h2>
-              <p class="step-copy">What kind of deal this is, where it stands, and who is carrying it. Keep it factual. Approximate is fine.</p>
+              <p class="step-copy">Please start with giving context for this deal.</p>
 
               <div class="field-grid">
                 <div class="field-row-2">
@@ -708,8 +739,7 @@
             </div>
 
             <div class="form-step" id="step2">
-              <h2 class="step-heading">Sharpen the read</h2>
-              <p class="step-copy">Now the specifics — what the buyer has actually done, and what your gut is telling you.</p>
+              <p class="step-copy">Let's sharpen the analysis.</p>
 
               <div class="field-grid">
                 <div class="field">
@@ -782,52 +812,38 @@
         </div>
 
         <div class="results" id="results">
-          <div class="results-header">
-            <div>
-              <h2>The read</h2>
-              <p>Based on what you've shared, here is the analysis.</p>
-            </div>
-            <div class="confidence" id="confidenceChip">Initial read</div>
-          </div>
-
-          <div class="edit-answers-row">
-            <button type="button" class="link-button" id="editAnswersButton">Edit your answers</button>
-          </div>
-
-          <div class="result-section">
-            <h3>What's likely happening now</h3>
-            <p id="whatsHappeningOutput"></p>
-          </div>
-
-          <div class="result-section">
-            <h3>Which way this could go</h3>
-            <p id="whichWayOutput"></p>
-          </div>
-
-          <div class="result-section">
-            <h3>What I'd suggest</h3>
-            <ol id="suggestionsOutput"></ol>
-          </div>
-
-          <div class="calibration" id="calibrationSection">
-            <label for="calibrationText">If I'm missing a key detail or a fact changed, refine it here.</label>
-            <textarea class="textarea" id="calibrationText" placeholder="Add the missing fact or correction." aria-describedby="calibrationNote"></textarea>
-            <div class="calibration-actions">
-              <button type="button" class="button" id="refineButton">Update the read</button>
-              <button type="button" class="button-secondary" id="resetButton">Start over</button>
-            </div>
-            <div class="microcopy" id="calibrationNote">One optional correction only.</div>
-          </div>
-
-          <div class="footer-tools">
-            <button type="button" class="button-secondary" id="copyButton">Copy to clipboard</button>
-            <button type="button" class="button-secondary" id="downloadButton">Download PDF</button>
-          </div>
-
-          <div class="status" id="statusMessage" aria-live="polite"></div>
+          <h2>Based on what you've shared, I couldn't determine</h2>
+          <ul class="lhs-gaps" id="lhsGapsOutput"></ul>
         </div>
       </main>
     </div>
+
+    <section class="panel hidden" id="actionsPanel">
+      <div class="panel-main">
+        <div class="edit-answers-row">
+          <button type="button" class="link-button" id="editAnswersButton">Edit your answers</button>
+        </div>
+
+        <div class="calibration" id="calibrationSection">
+          <label for="calibrationText">If I'm missing a key detail or a fact changed, refine it here.</label>
+          <textarea class="textarea" id="calibrationText" placeholder="Add the missing fact or correction." aria-describedby="calibrationNote"></textarea>
+          <div class="calibration-actions">
+            <button type="button" class="button" id="refineButton">Update the read</button>
+            <button type="button" class="button-secondary" id="resetButton">Start over</button>
+          </div>
+          <div class="microcopy" id="calibrationNote">One optional correction only.</div>
+        </div>
+
+        <div class="footer-tools">
+          <button type="button" class="button-secondary" id="copyButton">Copy to clipboard</button>
+          <button type="button" class="button-secondary" id="downloadButton">Download PDF</button>
+        </div>
+
+        <div class="status" id="statusMessage" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <div class="print-only" id="printSummary"></div>
   </div>
 
   <script>
@@ -842,12 +858,10 @@
     const results = document.getElementById('results');
     const progressFill = document.getElementById('progressFill');
     const progressTitle = document.getElementById('progressTitle');
-    const progressMeta = document.getElementById('progressMeta');
-    const labelStep1 = document.getElementById('labelStep1');
-    const labelStep2 = document.getElementById('labelStep2');
     const introStep1 = document.getElementById('introStep1');
     const introStep2 = document.getElementById('introStep2');
     const introStep3 = document.getElementById('introStep3');
+    const actionsPanel = document.getElementById('actionsPanel');
     const statusMessage = document.getElementById('statusMessage');
     const confidenceChip = document.getElementById('confidenceChip');
 
@@ -864,14 +878,11 @@
       const isStep1 = step === 1;
       step1.classList.toggle('active', isStep1);
       step2.classList.toggle('active', !isStep1);
-      labelStep1.classList.toggle('active', isStep1);
-      labelStep2.classList.toggle('active', !isStep1);
       introStep1.classList.toggle('active', isStep1);
       introStep2.classList.toggle('active', !isStep1);
       introStep3.classList.remove('active');
       progressFill.style.width = isStep1 ? '50%' : '100%';
-      progressTitle.textContent = isStep1 ? 'Step 1 of 2 · Start with the deal context' : 'Step 2 of 2 · Sharpen the read';
-      progressMeta.textContent = isStep1 ? 'Context first' : 'Evidence next';
+      progressTitle.textContent = isStep1 ? 'Step 1 of 2' : 'Step 2 of 2';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -884,6 +895,7 @@
       introStep1.classList.remove('active');
       introStep2.classList.remove('active');
       introStep3.classList.add('active');
+      actionsPanel.classList.remove('hidden');
     }
 
     // The one deliberate way back from screen 3: nothing is cleared, the
@@ -893,6 +905,7 @@
       results.classList.remove('active');
       formBody.classList.remove('hidden');
       progressBlock.classList.remove('hidden');
+      actionsPanel.classList.add('hidden');
       setStep(2);
     }
 
@@ -942,7 +955,7 @@
       fillList('suggestionsOutput', data.suggestions, 'No tactical next step returned.');
 
       const band = data.confidenceBand || '';
-      confidenceChip.textContent = band ? `Confidence · ${band}` : 'Initial read';
+      confidenceChip.textContent = band ? `How confident I am about this read · ${band}` : 'Initial read';
 
       state.lastResponse = data;
       processing.classList.remove('active');
@@ -1072,7 +1085,7 @@
 
     backToStep1.addEventListener('click', () => setStep(1));
 
-    editAnswersButton.addEventListener('click', () => exitReadStateForEditing());
+    document.getElementById('editAnswersButton').addEventListener('click', () => exitReadStateForEditing());
 
     dealForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -1098,10 +1111,12 @@
 
     document.getElementById('resetButton').addEventListener('click', () => {
       dealForm.reset();
-      exitReadStateForEditing();
+      results.classList.remove('active');
+      formBody.classList.remove('hidden');
+      progressBlock.classList.remove('hidden');
+      actionsPanel.classList.add('hidden');
       setStep(1);
       processing.classList.remove('active');
-      results.classList.remove('active');
       statusMessage.textContent = '';
       document.getElementById('calibrationSection').classList.remove('hidden');
       document.getElementById('calibrationText').value = '';
@@ -1140,7 +1155,72 @@
       statusMessage.style.color = 'var(--success)';
     });
 
+    // Escapes text dropped into the print summary's innerHTML -- the rep's
+    // own inputs and the model's output both pass through here, neither is
+    // trusted as markup.
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+
+    // Builds the print-only summary just before printing: deal header, the
+    // confidence line, gaps, and the three read sections -- nothing else.
+    // Step 1/2 form fields, buttons, and the calibration box are never part
+    // of this, regardless of what's currently visible on screen.
+    function buildPrintSummary() {
+      if (!state.lastResponse) return false;
+
+      const r = state.lastResponse;
+      const companyName = document.getElementById('companyName').value.trim();
+      const dealName = document.getElementById('dealName').value.trim();
+      const dealValue = document.getElementById('dealValue').value.trim();
+      const band = r.confidenceBand || '';
+
+      const headerParts = [companyName, dealName].filter(Boolean).join(' · ');
+      const subParts = [dealValue ? `Deal value: ${dealValue}` : ''].filter(Boolean).join(' · ');
+
+      const gaps = (r.gaps || []).filter(Boolean);
+      const suggestions = (r.suggestions || []).filter(Boolean);
+
+      const gapsHtml = gaps.length
+        ? `<ul>${gaps.map(g => `<li>${escapeHtml(g)}</li>`).join('')}</ul>`
+        : '<p>Nothing flagged as missing.</p>';
+
+      const suggestionsHtml = suggestions.length
+        ? `<ol>${suggestions.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>`
+        : '<p>No tactical next step returned.</p>';
+
+      document.getElementById('printSummary').innerHTML = `
+        <div class="print-heading">${escapeHtml(headerParts || 'Deal read')}</div>
+        ${subParts ? `<div class="print-subheading">${escapeHtml(subParts)}</div>` : ''}
+        ${band ? `<div class="print-confidence">How confident I am about this read · ${escapeHtml(band)}</div>` : ''}
+        <div class="print-section">
+          <h3>Based on what you've shared, I couldn't determine</h3>
+          ${gapsHtml}
+        </div>
+        <div class="print-section">
+          <h3>What's likely happening now</h3>
+          <p>${escapeHtml(r.whatsHappening || '')}</p>
+        </div>
+        <div class="print-section">
+          <h3>Which way this could go</h3>
+          <p>${escapeHtml(r.whichWayThisGoes || '')}</p>
+        </div>
+        <div class="print-section">
+          <h3>What I'd suggest</h3>
+          ${suggestionsHtml}
+        </div>
+      `;
+      return true;
+    }
+
     document.getElementById('downloadButton').addEventListener('click', () => {
+      if (!buildPrintSummary()) {
+        statusMessage.textContent = 'Generate a read before downloading.';
+        statusMessage.style.color = 'var(--error)';
+        return;
+      }
       const originalTitle = document.title;
       document.title = `ClearPipe - ${document.getElementById('companyName').value || 'Deal Read'}`;
       window.print();
