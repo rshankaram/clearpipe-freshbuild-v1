@@ -177,6 +177,28 @@ function normalizeOutput(parsed) {
   };
 }
 
+// Turns a failed Anthropic response into a message that actually tells you
+// something. The full status + body still goes to console.error either way
+// -- this just stops every failure mode from looking identical on screen.
+function classifyAnthropicError(status, errText) {
+  if (status === 401 || status === 403) {
+    return 'The API key looks invalid, missing, or lacking permission. Check ANTHROPIC_API_KEY in the deployment settings.';
+  }
+  if (status === 404) {
+    return 'The model ID the server sent was not recognized. Check the model name in analyze.js against the current Anthropic docs.';
+  }
+  if (status === 429) {
+    return 'The analysis service is rate-limited right now. Wait a moment and try again.';
+  }
+  if (status === 400) {
+    return `The request was malformed (this is a bug, not a rep error): ${errText.slice(0, 200)}`;
+  }
+  if (status >= 500) {
+    return "Anthropic's service is temporarily unavailable. Try again shortly.";
+  }
+  return 'The analysis service returned an error. Please try again in a moment.';
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed. Use POST.' });
@@ -212,7 +234,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-5',
         max_tokens: 2200,
-        temperature: 0.3,
+        // temperature intentionally omitted -- this model family rejects the
+        // parameter outright (400 invalid_request_error), unlike older Claude
+        // models where it was optional. Do not re-add without confirming the
+        // current model still supports it.
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: JSON.stringify(input) }]
       })
@@ -221,7 +246,7 @@ export default async function handler(req, res) {
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text();
       console.error('Anthropic API error:', anthropicRes.status, errText);
-      res.status(502).json({ error: 'The analysis service returned an error. Please try again in a moment.' });
+      res.status(502).json({ error: classifyAnthropicError(anthropicRes.status, errText) });
       return;
     }
 

@@ -75,8 +75,6 @@
     .topbar {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 16px;
       margin-bottom: 28px;
     }
 
@@ -121,19 +119,9 @@
       transform: rotate(25deg);
     }
 
-    .privacy-pill {
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: 14px;
-      color: var(--muted);
-      background: rgba(255,255,255,0.7);
-      backdrop-filter: blur(12px);
-    }
-
     .layout {
       display: grid;
-      grid-template-columns: 1.02fr 0.98fr;
+      grid-template-columns: 1fr 2fr;
       gap: 24px;
       align-items: start;
     }
@@ -147,65 +135,31 @@
     }
 
     .panel-main {
-      padding: 32px;
-    }
-
-    .kicker {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: var(--primary-soft);
-      color: var(--primary);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
+      padding: 32px 28px;
     }
 
     h1 {
-      margin: 16px 0 10px;
-      font-size: clamp(34px, 5vw, 56px);
-      line-height: 1.02;
-      letter-spacing: -0.05em;
-      max-width: 11ch;
+      margin: 0 0 18px;
+      font-size: clamp(26px, 2.6vw, 34px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
     }
 
-    .lede {
-      font-size: 17px;
-      line-height: 1.65;
+    .intro-step { display: none; }
+    .intro-step.active { display: block; }
+
+    .intro-step p {
+      font-size: 15.5px;
+      line-height: 1.6;
       color: var(--muted);
-      max-width: 62ch;
-      margin-bottom: 24px;
+      margin: 0 0 16px;
     }
 
-    .spec-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      margin-top: 28px;
-    }
+    .intro-step p:last-child { margin-bottom: 0; }
 
-    .spec-card {
-      padding: 18px;
-      border-radius: 20px;
-      background: #f4f2ec;
-      border: 1px solid rgba(38,35,31,0.08);
-    }
-
-    .spec-card strong {
-      display: block;
-      font-size: 16px;
-      margin-bottom: 6px;
-      letter-spacing: -0.01em;
-    }
-
-    .spec-card span {
-      color: var(--muted);
-      font-size: 14.5px;
-      line-height: 1.55;
-      display: block;
+    .intro-step p strong {
+      color: var(--text);
+      font-weight: 700;
     }
 
     .form-panel {
@@ -346,24 +300,25 @@
       box-shadow: 0 0 0 4px rgba(1,105,111,0.10);
     }
 
-    /* Visible choice tiles — replaces dropdowns everywhere in the form */
+    /* Visible choice tiles -- replaces dropdowns. Fixed 3-column grid so a
+       group's options always sit in a single row; long labels wrap inside
+       their own tile rather than the tile wrapping to a new row. */
     .tile-group {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
 
     .tile {
       position: relative;
-      flex: 1 1 auto;
-      min-width: 96px;
+      min-width: 0;
       text-align: center;
-      padding: 15px 16px;
+      padding: 15px 10px;
       border-radius: 16px;
       border: 1.5px solid rgba(38,35,31,0.14);
       background: #fff;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 15px;
       color: var(--text);
       cursor: pointer;
       transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, color 160ms ease;
@@ -587,23 +542,18 @@
 
     .hidden { display: none !important; }
 
-    @media (min-width: 640px) {
-      .spec-grid { grid-template-columns: 1fr 1fr; }
-    }
-
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
       .shell { width: min(100vw - 20px, 100%); padding-top: 18px; }
-      .topbar { flex-direction: column; align-items: flex-start; }
       .panel-main, .form-body, .results, .processing, .progress { padding-left: 18px; padding-right: 18px; }
       .field-row-2 { grid-template-columns: 1fr; }
       .actions { flex-direction: column-reverse; align-items: stretch; }
       .button, .button-secondary { width: 100%; }
       .step-labels { grid-template-columns: 1fr; }
-      .spec-grid { grid-template-columns: 1fr; }
+      .tile-group { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -615,29 +565,22 @@
         <div class="brand-mark" aria-hidden="true"></div>
         <div>ClearPipe</div>
       </div>
-      <div class="privacy-pill">Nothing you enter here is stored, saved, or shared. This read exists only for you in this session.</div>
     </div>
 
     <div class="layout">
       <aside class="panel" aria-labelledby="introHeading">
         <div class="panel-main">
-          <div class="kicker">Deal diagnosis</div>
-          <h1 id="introHeading">See what this deal is really doing.</h1>
-          <p class="lede">Two short screens. A grounded read on where this deal actually stands, built only from what you tell us.</p>
+          <h1 id="introHeading">Deal Diagnosis</h1>
 
-          <div class="spec-grid">
-            <div class="spec-card">
-              <strong>Two screens, not one form</strong>
-              <span>Start with the deal context. The read begins while you finish the second screen.</span>
-            </div>
-            <div class="spec-card">
-              <strong>Only what you told us</strong>
-              <span>Every read separates what you said from what we're guessing. Gaps stay gaps, not invented facts.</span>
-            </div>
-            <div class="spec-card">
-              <strong>One correction, one final read</strong>
-              <span>If something's off or changed, you get one chance to sharpen it — not an endless back and forth.</span>
-            </div>
+          <div class="intro-step active" id="introStep1">
+            <p>Get an objective analysis of this deal. It might shine a light on what you are missing. Help improve your chances of winning.</p>
+            <p><strong>Data Confidentiality:</strong> Nothing you enter here is stored, saved, or shared. This analysis exists for you only in this session. Once you close this window, it's gone forever.</p>
+          </div>
+
+          <div class="intro-step" id="introStep2">
+            <p>Thanks for sharing that context. Looks interesting.</p>
+            <p>Please answer a few more questions. The more info you share, the better the analysis.</p>
+            <p><strong>Caution:</strong> please only enter facts and information you can corroborate. Please don't enter your judgements, inference, or assumptions.</p>
           </div>
         </div>
       </aside>
@@ -869,6 +812,8 @@
     const progressMeta = document.getElementById('progressMeta');
     const labelStep1 = document.getElementById('labelStep1');
     const labelStep2 = document.getElementById('labelStep2');
+    const introStep1 = document.getElementById('introStep1');
+    const introStep2 = document.getElementById('introStep2');
     const statusMessage = document.getElementById('statusMessage');
     const confidenceChip = document.getElementById('confidenceChip');
 
@@ -887,6 +832,8 @@
       step2.classList.toggle('active', !isStep1);
       labelStep1.classList.toggle('active', isStep1);
       labelStep2.classList.toggle('active', !isStep1);
+      introStep1.classList.toggle('active', isStep1);
+      introStep2.classList.toggle('active', !isStep1);
       progressFill.style.width = isStep1 ? '50%' : '100%';
       progressTitle.textContent = isStep1 ? 'Step 1 of 2 · Start with the deal context' : 'Step 2 of 2 · Sharpen the read';
       progressMeta.textContent = isStep1 ? 'Context first' : 'Evidence next';
@@ -1084,7 +1031,6 @@
       setStep(1);
       processing.classList.remove('active');
       results.classList.remove('active');
-      watchSection.classList.add('hidden');
       statusMessage.textContent = '';
       document.getElementById('calibrationSection').classList.remove('hidden');
       document.getElementById('calibrationText').value = '';
