@@ -162,6 +162,16 @@
       font-weight: 700;
     }
 
+    .lhs-gaps {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 10px;
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
     .form-panel {
       background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,248,244,0.97) 100%);
     }
@@ -383,6 +393,19 @@
       border: 1px solid rgba(38,35,31,0.08);
     }
 
+    .link-button {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 13.5px;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .link-button:hover { color: var(--primary-hover); }
+
     .ghost-note {
       color: var(--faint);
       font-size: 13px;
@@ -443,7 +466,7 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 10px;
     }
 
     .results-header h2 {
@@ -457,6 +480,10 @@
       color: var(--muted);
       line-height: 1.55;
       font-size: 14px;
+    }
+
+    .edit-answers-row {
+      margin-bottom: 18px;
     }
 
     .result-section + .result-section {
@@ -582,11 +609,16 @@
             <p>Please answer a few more questions. The more info you share, the better the analysis.</p>
             <p><strong>Caution:</strong> please only enter facts and information you can corroborate. Please don't enter your judgements, inference, or assumptions.</p>
           </div>
+
+          <div class="intro-step" id="introStep3">
+            <p><strong>Based on what you've shared, I couldn't determine</strong></p>
+            <ul class="lhs-gaps" id="lhsGapsOutput"></ul>
+          </div>
         </div>
       </aside>
 
       <main class="panel form-panel" id="mainContent">
-        <div class="progress">
+        <div class="progress" id="progressBlock">
           <div class="progress-row">
             <div class="progress-title" id="progressTitle">Step 1 of 2 · Start with the deal context</div>
             <div class="progress-title" id="progressMeta">Context first</div>
@@ -598,7 +630,7 @@
           </div>
         </div>
 
-        <div class="form-body">
+        <div class="form-body" id="formBody">
           <form id="dealForm" novalidate>
             <div class="form-step active" id="step1">
               <h2 class="step-heading">Start with the deal context</h2>
@@ -758,9 +790,8 @@
             <div class="confidence" id="confidenceChip">Initial read</div>
           </div>
 
-          <div class="result-section">
-            <h3>Based on what you've shared, I couldn't determine</h3>
-            <ul id="gapsOutput"></ul>
+          <div class="edit-answers-row">
+            <button type="button" class="link-button" id="editAnswersButton">Edit your answers</button>
           </div>
 
           <div class="result-section">
@@ -805,6 +836,8 @@
     const toStep2 = document.getElementById('toStep2');
     const backToStep1 = document.getElementById('backToStep1');
     const dealForm = document.getElementById('dealForm');
+    const formBody = document.getElementById('formBody');
+    const progressBlock = document.getElementById('progressBlock');
     const processing = document.getElementById('processing');
     const results = document.getElementById('results');
     const progressFill = document.getElementById('progressFill');
@@ -814,6 +847,7 @@
     const labelStep2 = document.getElementById('labelStep2');
     const introStep1 = document.getElementById('introStep1');
     const introStep2 = document.getElementById('introStep2');
+    const introStep3 = document.getElementById('introStep3');
     const statusMessage = document.getElementById('statusMessage');
     const confidenceChip = document.getElementById('confidenceChip');
 
@@ -834,10 +868,32 @@
       labelStep2.classList.toggle('active', !isStep1);
       introStep1.classList.toggle('active', isStep1);
       introStep2.classList.toggle('active', !isStep1);
+      introStep3.classList.remove('active');
       progressFill.style.width = isStep1 ? '50%' : '100%';
       progressTitle.textContent = isStep1 ? 'Step 1 of 2 · Start with the deal context' : 'Step 2 of 2 · Sharpen the read';
       progressMeta.textContent = isStep1 ? 'Context first' : 'Evidence next';
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Screen 3: the read. Form and progress indicator hide entirely -- this
+    // is the destination, not another step in a form. LHS swaps to show the
+    // gaps instead of static copy.
+    function enterReadState() {
+      formBody.classList.add('hidden');
+      progressBlock.classList.add('hidden');
+      introStep1.classList.remove('active');
+      introStep2.classList.remove('active');
+      introStep3.classList.add('active');
+    }
+
+    // The one deliberate way back from screen 3: nothing is cleared, the
+    // form simply reappears with Step 2's fields exactly as the rep left
+    // them, ready to edit and regenerate.
+    function exitReadStateForEditing() {
+      results.classList.remove('active');
+      formBody.classList.remove('hidden');
+      progressBlock.classList.remove('hidden');
+      setStep(2);
     }
 
     // Validates a step's fields, including radio-tile groups (each group only
@@ -880,7 +936,7 @@
     }
 
     function renderResponse(data) {
-      fillList('gapsOutput', data.gaps, 'Nothing flagged as missing.');
+      fillList('lhsGapsOutput', data.gaps, 'Nothing flagged as missing.');
       document.getElementById('whatsHappeningOutput').textContent = data.whatsHappening || 'No read generated.';
       document.getElementById('whichWayOutput').textContent = data.whichWayThisGoes || '';
       fillList('suggestionsOutput', data.suggestions, 'No tactical next step returned.');
@@ -891,8 +947,10 @@
       state.lastResponse = data;
       processing.classList.remove('active');
       results.classList.add('active');
+      enterReadState();
       statusMessage.textContent = '';
       statusMessage.style.color = 'var(--muted)';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function buildPayload(calibrationText = '') {
@@ -952,6 +1010,16 @@
     }
 
     async function submitRead(calibrationText = '') {
+      // A fresh, non-calibrated submission (the first read, or a regenerate
+      // after "Edit your answers") gets a clean slate on the one-time
+      // correction allowance -- that allowance belongs to THIS read, not the
+      // session.
+      if (!calibrationText) {
+        state.refinedOnce = false;
+        document.getElementById('calibrationSection').classList.remove('hidden');
+        document.getElementById('calibrationText').value = '';
+      }
+
       processing.classList.add('active');
       results.classList.remove('active');
       statusMessage.textContent = '';
@@ -1004,6 +1072,8 @@
 
     backToStep1.addEventListener('click', () => setStep(1));
 
+    editAnswersButton.addEventListener('click', () => exitReadStateForEditing());
+
     dealForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!validateStep(step2)) return;
@@ -1028,6 +1098,7 @@
 
     document.getElementById('resetButton').addEventListener('click', () => {
       dealForm.reset();
+      exitReadStateForEditing();
       setStep(1);
       processing.classList.remove('active');
       results.classList.remove('active');
