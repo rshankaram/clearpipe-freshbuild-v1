@@ -53,7 +53,13 @@ Patterns you may name when supported:
 - Conversation progress without buying progress — the relationship is moving, the deal is not.
 If the evidence only shows a contradiction or a gap, say that plainly instead of forcing one of these onto it. An honest "the evidence doesn't support a direction yet, and here's the fact that would" is better than a plausible but unsupported label.
 
-OUTPUT — RETURN THIS JSON SHAPE ONLY. NO MARKDOWN FENCES. NO TEXT OUTSIDE THE JSON.
+OUTPUT FORMAT — READ THIS CAREFULLY, IT IS ENFORCED BY CODE, NOT JUST STYLE PREFERENCE
+
+Your entire response must be a single JSON object and nothing else.
+The very first character of your response must be {. The very last character must be }.
+Do not write any text before the JSON. Do not write any text after the JSON. Do not use markdown code fences (no \`\`\`json, no \`\`\`). Do not add commentary, apologies, or sign-offs outside the object.
+Every string value must be valid JSON: escape any double quotes or backslashes that appear inside a string with a backslash, and do not include raw, unescaped line breaks inside a string value — use a single space instead.
+If you are uncertain how to phrase something inside a JSON string safely, simplify the wording rather than risk breaking the format.
 
 {
   "gaps": ["string", "string"],
@@ -199,6 +205,69 @@ function classifyAnthropicError(status, errText) {
   return 'The analysis service returned an error. Please try again in a moment.';
 }
 
+// Pulls a single JSON object out of the model's raw text response, tolerant
+// of the ways models occasionally deviate from "JSON only": markdown code
+// fences, a stray leading/trailing sentence, or trailing commentary after
+// the object that would otherwise confuse a naive greedy regex match.
+//
+// Strategy, in order:
+// 1. Try parsing the trimmed text directly -- the common case.
+// 2. Strip a ```json ... ``` or ``` ... ``` fence if present, then retry.
+// 3. Fall back to brace-depth counting from the first "{" to find exactly
+//    where the top-level object actually ends, instead of grabbing
+//    everything up to the LAST "}" in the text (which breaks if the model
+//    adds any prose containing braces before or after the object).
+function extractJson(rawText) {
+  const trimmed = rawText.trim();
+
+  try {
+    return JSON.parse(trimmed);
+  } catch { /* fall through */ }
+
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenceMatch) {
+    try {
+      return JSON.parse(fenceMatch[1].trim());
+    } catch { /* fall through */ }
+  }
+
+  const start = trimmed.indexOf('{');
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < trimmed.length; i++) {
+    const ch = trimmed[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        const candidate = trimmed.slice(start, i + 1);
+        try {
+          return JSON.parse(candidate);
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed. Use POST.' });
@@ -233,7 +302,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 2200,
+        max_tokens: 3000,
         // temperature intentionally omitted -- this model family rejects the
         // parameter outright (400 invalid_request_error), unlike older Claude
         // models where it was optional. Do not re-add without confirming the
@@ -256,18 +325,9 @@ export default async function handler(req, res) {
       : null;
 
     const rawText = textBlock ? textBlock.text.trim() : '';
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error('Model did not return JSON:', rawText);
-      res.status(502).json({ error: 'Could not parse the analysis. Please try again.' });
-      return;
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(jsonMatch[0]);
-    } catch (error) {
-      console.error('Failed to parse model JSON:', error, rawText);
+    const parsed = extractJson(rawText);
+    if (!parsed) {
+      console.error('Model did not return parseable JSON. Stop reason:', anthropicData.stop_reason, 'Raw text:', rawText);
       res.status(502).json({ error: 'Could not parse the analysis. Please try again.' });
       return;
     }
