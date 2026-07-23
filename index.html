@@ -126,6 +126,14 @@
       align-items: start;
     }
 
+    /* Screen 3 only: the LHS now carries the long-form analysis and the RHS
+       carries the short gaps list, so the wide/narrow ratio flips with the
+       content -- width stays attached to how much content is there, not to
+       which side of the screen it happens to sit on. */
+    .layout.read-state {
+      grid-template-columns: 2fr 1fr;
+    }
+
     .panel {
       background: rgba(251, 251, 248, 0.92);
       border: 1px solid rgba(38, 35, 31, 0.10);
@@ -611,7 +619,7 @@
       </div>
     </div>
 
-    <div class="layout">
+    <div class="layout" id="layoutGrid">
       <aside class="panel" aria-labelledby="introHeading">
         <div class="panel-main">
           <h1 id="introHeading">Deal Diagnosis</h1>
@@ -801,6 +809,7 @@
                 <button type="button" class="button-secondary" id="backToStep1">Back</button>
                 <button type="submit" class="button">Generate the read</button>
               </div>
+              <div class="status" id="formStatusMessage" aria-live="polite"></div>
             </div>
           </form>
         </div>
@@ -863,7 +872,9 @@
     const introStep3 = document.getElementById('introStep3');
     const actionsPanel = document.getElementById('actionsPanel');
     const statusMessage = document.getElementById('statusMessage');
+    const formStatusMessage = document.getElementById('formStatusMessage');
     const confidenceChip = document.getElementById('confidenceChip');
+    const layoutGrid = document.getElementById('layoutGrid');
 
     const state = {
       lastPayload: null,
@@ -896,6 +907,7 @@
       introStep2.classList.remove('active');
       introStep3.classList.add('active');
       actionsPanel.classList.remove('hidden');
+      layoutGrid.classList.add('read-state');
     }
 
     // The one deliberate way back from screen 3: nothing is cleared, the
@@ -906,6 +918,7 @@
       formBody.classList.remove('hidden');
       progressBlock.classList.remove('hidden');
       actionsPanel.classList.add('hidden');
+      layoutGrid.classList.remove('read-state');
       setStep(2);
     }
 
@@ -963,6 +976,7 @@
       enterReadState();
       statusMessage.textContent = '';
       statusMessage.style.color = 'var(--muted)';
+      formStatusMessage.textContent = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1033,9 +1047,23 @@
         document.getElementById('calibrationText').value = '';
       }
 
+      const isFirstRead = !calibrationText;
+
+      // A first read hides the Step 2 form the instant it's submitted, so
+      // the processing pulse is the only thing left on screen -- no
+      // scrolling needed to see it. A refine keeps the form hidden and the
+      // actions panel visible exactly as it already was; only its own
+      // status line and result area reset.
+      if (isFirstRead) {
+        formBody.classList.add('hidden');
+        progressBlock.classList.add('hidden');
+        formStatusMessage.textContent = '';
+      } else {
+        statusMessage.textContent = '';
+      }
       processing.classList.add('active');
       results.classList.remove('active');
-      statusMessage.textContent = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       // Pick up the background enrichment fetch here, if one was started on
       // Step 1. Almost always already resolved by this point -- the rep has
@@ -1065,9 +1093,18 @@
         renderResponse(data);
       } catch (error) {
         processing.classList.remove('active');
-        results.classList.add('active');
-        statusMessage.textContent = error.message || 'Something went wrong while generating the read.';
-        statusMessage.style.color = 'var(--error)';
+        const message = error.message || 'Something went wrong while generating the read.';
+        if (isFirstRead) {
+          formBody.classList.remove('hidden');
+          progressBlock.classList.remove('hidden');
+          formStatusMessage.textContent = message;
+          formStatusMessage.style.color = 'var(--error)';
+        } else {
+          results.classList.add('active');
+          statusMessage.textContent = message;
+          statusMessage.style.color = 'var(--error)';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
 
@@ -1115,9 +1152,11 @@
       formBody.classList.remove('hidden');
       progressBlock.classList.remove('hidden');
       actionsPanel.classList.add('hidden');
+      layoutGrid.classList.remove('read-state');
       setStep(1);
       processing.classList.remove('active');
       statusMessage.textContent = '';
+      formStatusMessage.textContent = '';
       document.getElementById('calibrationSection').classList.remove('hidden');
       document.getElementById('calibrationText').value = '';
       state.refinedOnce = false;
