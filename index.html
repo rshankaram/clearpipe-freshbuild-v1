@@ -182,13 +182,13 @@
 
     .spec-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       gap: 14px;
       margin-top: 28px;
     }
 
     .spec-card {
-      padding: 16px;
+      padding: 18px;
       border-radius: 20px;
       background: #f4f2ec;
       border: 1px solid rgba(38,35,31,0.08);
@@ -196,14 +196,16 @@
 
     .spec-card strong {
       display: block;
-      font-size: 14px;
+      font-size: 16px;
       margin-bottom: 6px;
+      letter-spacing: -0.01em;
     }
 
     .spec-card span {
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
+      font-size: 14.5px;
+      line-height: 1.55;
+      display: block;
     }
 
     .form-panel {
@@ -293,7 +295,7 @@
 
     .field-grid {
       display: grid;
-      gap: 16px;
+      gap: 18px;
     }
 
     .field-row-2 {
@@ -304,21 +306,20 @@
 
     .field label {
       display: block;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 9px;
       color: var(--text);
     }
 
     .hint {
-      font-size: 12px;
+      font-size: 12.5px;
       color: var(--faint);
-      margin-top: 7px;
+      margin-top: 8px;
       line-height: 1.45;
     }
 
     .input,
-    .select,
     .textarea {
       appearance: none;
       -webkit-appearance: none;
@@ -328,6 +329,7 @@
       color: var(--text);
       border-radius: 16px;
       padding: 14px 16px;
+      font-size: 15.5px;
       outline: none;
       transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
     }
@@ -339,10 +341,58 @@
     }
 
     .input:focus,
-    .select:focus,
     .textarea:focus {
       border-color: rgba(1,105,111,0.35);
       box-shadow: 0 0 0 4px rgba(1,105,111,0.10);
+    }
+
+    /* Visible choice tiles — replaces dropdowns everywhere in the form */
+    .tile-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tile {
+      position: relative;
+      flex: 1 1 auto;
+      min-width: 96px;
+      text-align: center;
+      padding: 15px 16px;
+      border-radius: 16px;
+      border: 1.5px solid rgba(38,35,31,0.14);
+      background: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, color 160ms ease;
+    }
+
+    .tile-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .tile:hover { border-color: rgba(1,105,111,0.35); }
+
+    .tile:has(.tile-input:checked) {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary-hover);
+      box-shadow: 0 6px 16px rgba(1,105,111,0.14);
+    }
+
+    .tile:has(.tile-input:focus-visible) {
+      outline: 3px solid rgba(1,105,111,0.35);
+      outline-offset: 2px;
     }
 
     .actions {
@@ -404,10 +454,9 @@
       display: inline-flex;
       gap: 8px;
       align-items: center;
-      margin-bottom: 12px;
       color: var(--primary);
       font-weight: 700;
-      font-size: 14px;
+      font-size: 15px;
     }
 
     .pulse i {
@@ -475,7 +524,8 @@
       margin: 0;
     }
 
-    .result-section ol {
+    .result-section ol,
+    .result-section ul {
       margin: 0;
       padding-left: 20px;
       display: grid;
@@ -492,6 +542,7 @@
       color: var(--muted);
       font-size: 13px;
       font-weight: 700;
+      white-space: nowrap;
     }
 
     .calibration {
@@ -536,9 +587,12 @@
 
     .hidden { display: none !important; }
 
+    @media (min-width: 640px) {
+      .spec-grid { grid-template-columns: 1fr 1fr; }
+    }
+
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
-      .spec-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 720px) {
@@ -549,6 +603,7 @@
       .actions { flex-direction: column-reverse; align-items: stretch; }
       .button, .button-secondary { width: 100%; }
       .step-labels { grid-template-columns: 1fr; }
+      .spec-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -564,13 +619,28 @@
     </div>
 
     <div class="layout">
-      <section class="panel" aria-labelledby="introHeading">
+      <aside class="panel" aria-labelledby="introHeading">
         <div class="panel-main">
           <div class="kicker">Deal diagnosis</div>
           <h1 id="introHeading">See what this deal is really doing.</h1>
-          <p class="lede">A simple flow to capture the deal context and sharpen the read.</p>
+          <p class="lede">Two short screens. A grounded read on where this deal actually stands, built only from what you tell us.</p>
 
-          
+          <div class="spec-grid">
+            <div class="spec-card">
+              <strong>Two screens, not one form</strong>
+              <span>Start with the deal context. The read begins while you finish the second screen.</span>
+            </div>
+            <div class="spec-card">
+              <strong>Only what you told us</strong>
+              <span>Every read separates what you said from what we're guessing. Gaps stay gaps, not invented facts.</span>
+            </div>
+            <div class="spec-card">
+              <strong>One correction, one final read</strong>
+              <span>If something's off or changed, you get one chance to sharpen it — not an endless back and forth.</span>
+            </div>
+          </div>
+        </div>
+      </aside>
 
       <main class="panel form-panel" id="mainContent">
         <div class="progress">
@@ -586,10 +656,10 @@
         </div>
 
         <div class="form-body">
-          <form id="dealForm">
+          <form id="dealForm" novalidate>
             <div class="form-step active" id="step1">
               <h2 class="step-heading">Start with the deal context</h2>
-              <p class="step-copy">Start with what kind of deal this is, where it stands, and who is carrying it. Keep it factual. Approximate is fine.</p>
+              <p class="step-copy">What kind of deal this is, where it stands, and who is carrying it. Keep it factual. Approximate is fine.</p>
 
               <div class="field-grid">
                 <div class="field-row-2">
@@ -603,6 +673,12 @@
                   </div>
                 </div>
 
+                <div class="field">
+                  <label for="prospectUrl">Prospect website <span style="font-weight:500;color:var(--faint);">(optional)</span></label>
+                  <input class="input" id="prospectUrl" name="prospectUrl" type="url" placeholder="https://theircompany.com" />
+                  <div class="hint">Sharing the website provides more context and enables a more specific analysis.</div>
+                </div>
+
                 <div class="field-row-2">
                   <div class="field">
                     <label for="dealValue">What is the rough deal value?</label>
@@ -610,34 +686,31 @@
                     <div class="hint">Approximate is enough.</div>
                   </div>
                   <div class="field">
-                    <label for="dealStage">Where does the deal stand right now?</label>
-                    <select class="select" id="dealStage" name="dealStage" required>
-                      <option value="">Pick one</option>
-                      <option>Early</option>
-                      <option>Middle</option>
-                      <option>Late</option>
-                    </select>
+                    <label id="dealStageLabel">Where does the deal stand right now?</label>
+                    <div class="tile-group" role="radiogroup" aria-labelledby="dealStageLabel">
+                      <label class="tile"><input class="tile-input" type="radio" name="dealStage" value="Early" required><span>Early</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="dealStage" value="Middle" required><span>Middle</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="dealStage" value="Late" required><span>Late</span></label>
+                    </div>
                   </div>
                 </div>
 
                 <div class="field-row-2">
                   <div class="field">
-                    <label for="dealStatus">What stage is the deal in, right now?</label>
-                    <select class="select" id="dealStatus" name="dealStatus" required>
-                      <option value="">Pick one</option>
-                      <option>Moving</option>
-                      <option>Stuck</option>
-                      <option>Paused</option>
-                    </select>
+                    <label id="dealStatusLabel">What is it doing right now?</label>
+                    <div class="tile-group" role="radiogroup" aria-labelledby="dealStatusLabel">
+                      <label class="tile"><input class="tile-input" type="radio" name="dealStatus" value="Moving" required><span>Moving</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="dealStatus" value="Stuck" required><span>Stuck</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="dealStatus" value="Paused" required><span>Paused</span></label>
+                    </div>
                   </div>
                   <div class="field">
-                    <label for="conversationDriver">Who is chasing whom right now?</label>
-                    <select class="select" id="conversationDriver" name="conversationDriver" required>
-                      <option value="">Pick one</option>
-                      <option>Mostly me</option>
-                      <option>Fairly equal</option>
-                      <option>Mostly them</option>
-                    </select>
+                    <label id="conversationDriverLabel">Who is chasing whom right now?</label>
+                    <div class="tile-group" role="radiogroup" aria-labelledby="conversationDriverLabel">
+                      <label class="tile"><input class="tile-input" type="radio" name="conversationDriver" value="Mostly me" required><span>Mostly me</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="conversationDriver" value="Fairly equal" required><span>Fairly equal</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="conversationDriver" value="Mostly them" required><span>Mostly them</span></label>
+                    </div>
                   </div>
                 </div>
 
@@ -654,14 +727,14 @@
               </div>
 
               <div class="actions">
-                <div class="ghost-note">Step 1 should be enough to form a first read.</div>
+                <div class="ghost-note">About a minute.</div>
                 <button type="button" class="button" id="toStep2">Continue to step 2</button>
               </div>
             </div>
 
             <div class="form-step" id="step2">
               <h2 class="step-heading">Sharpen the read</h2>
-              <p class="step-copy">Use the details you already have to see what the buyer is doing and what still feels true.</p>
+              <p class="step-copy">Now the specifics — what the buyer has actually done, and what your gut is telling you.</p>
 
               <div class="field-grid">
                 <div class="field">
@@ -671,43 +744,39 @@
 
                 <div class="field-row-2">
                   <div class="field">
-                    <label for="pricingRaisedByBuyer">Has the buyer moved price or commercials from their side?</label>
-                    <select class="select" id="pricingRaisedByBuyer" name="pricingRaisedByBuyer" required>
-                      <option value="">Pick one</option>
-                      <option>Yes</option>
-                      <option>No</option>
-                      <option>Not sure</option>
-                    </select>
+                    <label id="pricingLabel">Has the buyer moved price or commercials from their side?</label>
+                    <div class="tile-group" role="radiogroup" aria-labelledby="pricingLabel">
+                      <label class="tile"><input class="tile-input" type="radio" name="pricingRaisedByBuyer" value="Yes" required><span>Yes</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="pricingRaisedByBuyer" value="No" required><span>No</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="pricingRaisedByBuyer" value="Not sure" required><span>Not sure</span></label>
+                    </div>
                   </div>
                   <div class="field">
-                    <label for="metSomeoneSenior">Have you spoken with anyone else from their side?</label>
-                    <select class="select" id="metSomeoneSenior" name="metSomeoneSenior" required>
-                      <option value="">Pick one</option>
-                      <option>Yes</option>
-                      <option>No</option>
-                      <option>Not yet</option>
-                    </select>
+                    <label id="metSeniorLabel">Have you spoken with anyone else from their side?</label>
+                    <div class="tile-group" role="radiogroup" aria-labelledby="metSeniorLabel">
+                      <label class="tile"><input class="tile-input" type="radio" name="metSomeoneSenior" value="Yes" required><span>Yes</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="metSomeoneSenior" value="No" required><span>No</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="metSomeoneSenior" value="Not yet" required><span>Not yet</span></label>
+                    </div>
                   </div>
                 </div>
 
                 <div class="field-row-2">
                   <div class="field">
-                    <label for="winningRead">What is your honest gut read right now?</label>
-                    <select class="select" id="winningRead" name="winningRead" required>
-                      <option value="">Pick one</option>
-                      <option>Ahead</option>
-                      <option>Behind</option>
-                      <option>Too early</option>
-                    </select>
+                    <label id="winningReadLabel">What is your honest gut read right now?</label>
+                    <div class="tile-group" role="radiogroup" aria-labelledby="winningReadLabel">
+                      <label class="tile"><input class="tile-input" type="radio" name="winningRead" value="Ahead" required><span>Ahead</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="winningRead" value="Behind" required><span>Behind</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="winningRead" value="Too early" required><span>Too early</span></label>
+                    </div>
                   </div>
                   <div class="field">
-                    <label for="painUrgency">If you do nothing, what happens on their side?</label>
-                    <select class="select" id="painUrgency" name="painUrgency" required>
-                      <option value="">Pick one</option>
-                      <option>Something breaks</option>
-                      <option>Nothing urgent</option>
-                      <option>Genuinely fine</option>
-                    </select>
+                    <label id="painUrgencyLabel">If you do nothing, what happens on their side?</label>
+                    <div class="tile-group" role="radiogroup" aria-labelledby="painUrgencyLabel">
+                      <label class="tile"><input class="tile-input" type="radio" name="painUrgency" value="Something breaks" required><span>Something breaks</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="painUrgency" value="Nothing urgent" required><span>Nothing urgent</span></label>
+                      <label class="tile"><input class="tile-input" type="radio" name="painUrgency" value="Genuinely fine" required><span>Genuinely fine</span></label>
+                    </div>
                   </div>
                 </div>
 
@@ -733,8 +802,7 @@
 
         <div class="processing" id="processing">
           <div class="processing-box">
-            <div class="pulse"><i></i><i></i><i></i> Using the first page to tighten the read</div>
-            <div class="step-copy" style="margin:0;">Using the first-page context to make the read sharper before showing it.</div>
+            <div class="pulse"><i></i><i></i><i></i> Pulling together what you've told us so far</div>
           </div>
         </div>
 
@@ -742,38 +810,33 @@
           <div class="results-header">
             <div>
               <h2>The read</h2>
-              <p>Based on what you’ve shared, here is the analysis.</p>
+              <p>Based on what you've shared, here is the analysis.</p>
             </div>
             <div class="confidence" id="confidenceChip">Initial read</div>
           </div>
 
           <div class="result-section">
-            <h3>Here’s what I’m seeing</h3>
-            <p id="seeingOutput"></p>
+            <h3>Based on what you've shared, I couldn't determine</h3>
+            <ul id="gapsOutput"></ul>
           </div>
 
           <div class="result-section">
-            <h3>Something worth knowing</h3>
-            <p id="worthKnowingOutput"></p>
-          </div>
-
-          <div class="result-section hidden" id="watchSection">
-            <h3>Watch out for this</h3>
-            <p id="watchOutput"></p>
+            <h3>What's likely happening now</h3>
+            <p id="whatsHappeningOutput"></p>
           </div>
 
           <div class="result-section">
-            <h3>Before your next conversation</h3>
-            <ol id="nextActionsOutput"></ol>
+            <h3>Which way this could go</h3>
+            <p id="whichWayOutput"></p>
           </div>
 
           <div class="result-section">
-            <h3>Where this deal stands</h3>
-            <p id="confidenceReasonOutput"></p>
+            <h3>What I'd suggest</h3>
+            <ol id="suggestionsOutput"></ol>
           </div>
 
           <div class="calibration" id="calibrationSection">
-            <label for="calibrationText">If I’m missing a key detail or a fact changed, refine it here.</label>
+            <label for="calibrationText">If I'm missing a key detail or a fact changed, refine it here.</label>
             <textarea class="textarea" id="calibrationText" placeholder="Add the missing fact or correction." aria-describedby="calibrationNote"></textarea>
             <div class="calibration-actions">
               <button type="button" class="button" id="refineButton">Update the read</button>
@@ -806,14 +869,16 @@
     const progressMeta = document.getElementById('progressMeta');
     const labelStep1 = document.getElementById('labelStep1');
     const labelStep2 = document.getElementById('labelStep2');
-    const watchSection = document.getElementById('watchSection');
     const statusMessage = document.getElementById('statusMessage');
     const confidenceChip = document.getElementById('confidenceChip');
 
     const state = {
       lastPayload: null,
       refinedOnce: false,
-      lastResponse: null
+      lastResponse: null,
+      companyContext: null,
+      companyContextPromise: null,
+      companyContextResolved: false
     };
 
     function setStep(step) {
@@ -828,53 +893,53 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // Validates a step's fields, including radio-tile groups (each group only
+    // needs to be checked once even though every radio in it carries "required").
     function validateStep(container) {
-      const required = Array.from(container.querySelectorAll('[required]'));
-      return required.every(el => {
-        if (el.value && el.value.trim() !== '') return true;
-        el.reportValidity();
-        return false;
+      const requiredEls = Array.from(container.querySelectorAll('[required]'));
+      const seenRadioGroups = new Set();
+      for (const el of requiredEls) {
+        if (el.type === 'radio') {
+          if (seenRadioGroups.has(el.name)) continue;
+          seenRadioGroups.add(el.name);
+          const checked = container.querySelector(`input[name="${el.name}"]:checked`);
+          if (!checked) {
+            el.reportValidity();
+            return false;
+          }
+        } else if (!el.value || el.value.trim() === '') {
+          el.reportValidity();
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function fillList(elementId, items, emptyText) {
+      const list = document.getElementById(elementId);
+      list.innerHTML = '';
+      const values = Array.isArray(items) ? items.filter(Boolean) : [];
+      if (!values.length) {
+        const li = document.createElement('li');
+        li.textContent = emptyText;
+        list.appendChild(li);
+        return;
+      }
+      values.forEach(value => {
+        const li = document.createElement('li');
+        li.textContent = value;
+        list.appendChild(li);
       });
     }
 
-    function splitActions(text) {
-      if (!text) return [];
-      const lines = text
-        .split(/\n+/)
-        .map(s => s.replace(/^\s*\d+[\.)]\s*/, '').trim())
-        .filter(Boolean);
-      if (lines.length > 1) return lines;
-      return text
-        .split(/(?<=[.?!])\s+(?=[A-Z])/)
-        .map(s => s.trim())
-        .filter(Boolean)
-        .slice(0, 3);
-    }
-
     function renderResponse(data) {
-      document.getElementById('seeingOutput').textContent = data.seeing || 'No read generated.';
-      document.getElementById('worthKnowingOutput').textContent = data.worthKnowing || '';
-      document.getElementById('confidenceReasonOutput').textContent = data.confidenceReason || '';
-      confidenceChip.textContent = data.confidenceBand ? `Confidence · ${data.confidenceBand}` : 'Initial read';
+      fillList('gapsOutput', data.gaps, 'Nothing flagged as missing.');
+      document.getElementById('whatsHappeningOutput').textContent = data.whatsHappening || 'No read generated.';
+      document.getElementById('whichWayOutput').textContent = data.whichWayThisGoes || '';
+      fillList('suggestionsOutput', data.suggestions, 'No tactical next step returned.');
 
-      const watchText = data.watchOutForThis || '';
-      watchSection.classList.toggle('hidden', !watchText.trim());
-      document.getElementById('watchOutput').textContent = watchText;
-
-      const actions = splitActions(data.nextConversation || '');
-      const actionList = document.getElementById('nextActionsOutput');
-      actionList.innerHTML = '';
-      if (!actions.length) {
-        const li = document.createElement('li');
-        li.textContent = 'No tactical next step returned.';
-        actionList.appendChild(li);
-      } else {
-        actions.forEach(action => {
-          const li = document.createElement('li');
-          li.textContent = action;
-          actionList.appendChild(li);
-        });
-      }
+      const band = data.confidenceBand || '';
+      confidenceChip.textContent = band ? `Confidence · ${band}` : 'Initial read';
 
       state.lastResponse = data;
       processing.classList.remove('active');
@@ -902,17 +967,59 @@
         painUrgency: form.get('painUrgency') || '',
         biggestConcern: form.get('biggestConcern')?.trim() || '',
         whatFeelsRight: form.get('whatFeelsRight')?.trim() || '',
+        companyContext: state.companyContext || '',
         calibrationText: calibrationText.trim(),
         initialResponse: state.lastResponse
       };
     }
 
+    // Fires the instant Step 1 is submitted, if a URL was given. Not awaited
+    // there -- the rep moves to Step 2 immediately. The promise is picked up
+    // later, when the final read is actually generated, by which point the
+    // rep has usually spent far longer on Step 2 than this could ever take.
+    // Fails silently in every case: bad URL, timeout, blocked site, no news
+    // page found -- all resolve to null.
+    async function fetchCompanyContext(url) {
+      try {
+        const response = await fetch('/api/enrich', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        if (!response.ok) return null;
+        const data = await response.json().catch(() => ({}));
+        return data && data.context ? data.context : null;
+      } catch {
+        return null;
+      }
+    }
+
+    // Belt-and-braces client-side cap in case the enrichment call itself
+    // hangs longer than expected -- the final read must never wait
+    // indefinitely on it.
+    function withTimeout(promise, ms) {
+      return Promise.race([
+        promise,
+        new Promise(resolve => setTimeout(() => resolve(null), ms))
+      ]);
+    }
+
     async function submitRead(calibrationText = '') {
-      const payload = buildPayload(calibrationText);
-      state.lastPayload = payload;
       processing.classList.add('active');
       results.classList.remove('active');
       statusMessage.textContent = '';
+
+      // Pick up the background enrichment fetch here, if one was started on
+      // Step 1. Almost always already resolved by this point -- the rep has
+      // just spent time on Step 2. A generous cap either way, since this
+      // must never hang the read indefinitely.
+      if (state.companyContextPromise && !state.companyContextResolved) {
+        state.companyContext = await withTimeout(state.companyContextPromise, 4000);
+        state.companyContextResolved = true;
+      }
+
+      const payload = buildPayload(calibrationText);
+      state.lastPayload = payload;
 
       try {
         const response = await fetch('/api/analyze', {
@@ -932,12 +1039,19 @@
         processing.classList.remove('active');
         results.classList.add('active');
         statusMessage.textContent = error.message || 'Something went wrong while generating the read.';
-      statusMessage.style.color = 'var(--error)';
+        statusMessage.style.color = 'var(--error)';
       }
     }
 
     toStep2.addEventListener('click', () => {
       if (!validateStep(step1)) return;
+
+      const url = document.getElementById('prospectUrl').value.trim();
+      if (url) {
+        // Kick off and move on -- nothing on Step 2 depends on this result,
+        // so there's nothing to wait for here.
+        state.companyContextPromise = fetchCompanyContext(url);
+      }
       setStep(2);
     });
 
@@ -977,25 +1091,32 @@
       state.refinedOnce = false;
       state.lastPayload = null;
       state.lastResponse = null;
+      state.companyContext = null;
+      state.companyContextPromise = null;
+      state.companyContextResolved = false;
     });
 
     document.getElementById('copyButton').addEventListener('click', async () => {
       if (!state.lastResponse) return;
+      const r = state.lastResponse;
+      const band = r.confidenceBand || '';
+      const gaps = (r.gaps || []).map(g => `- ${g}`).join('\n');
+      const suggestions = (r.suggestions || []).map((s, idx) => `${idx + 1}. ${s}`).join('\n');
       const text = [
         'The read',
+        band ? `Confidence: ${band}` : '',
         '',
-        'Here’s what I’m seeing',
-        state.lastResponse.seeing || '',
+        "Based on what you've shared, I couldn't determine",
+        gaps,
         '',
-        'Something worth knowing',
-        state.lastResponse.worthKnowing || '',
+        "What's likely happening now",
+        r.whatsHappening || '',
         '',
-        state.lastResponse.watchOutForThis ? 'Watch out for this\n' + state.lastResponse.watchOutForThis + '\n' : '',
-        'Before your next conversation',
-        (splitActions(state.lastResponse.nextConversation || '').map((item, idx) => `${idx + 1}. ${item}`).join('\n')),
+        'Which way this could go',
+        r.whichWayThisGoes || '',
         '',
-        'Where this deal stands',
-        state.lastResponse.confidenceReason || ''
+        "What I'd suggest",
+        suggestions
       ].join('\n');
       await navigator.clipboard.writeText(text);
       statusMessage.textContent = 'Copied to clipboard.';
