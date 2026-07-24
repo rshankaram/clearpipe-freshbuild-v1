@@ -1105,8 +1105,13 @@
       // Step 1. Almost always already resolved by this point -- the rep has
       // just spent time on Step 2. A generous cap either way, since this
       // must never hang the read indefinitely.
+      // Cap must be >= enrich.js's own TOTAL_BUDGET_MS (8500ms as of this
+      // writing) plus a small safety margin, or every real enrichment
+      // result gets thrown away here before the server has finished
+      // producing it -- this was previously 4000ms, well under that budget,
+      // which meant companyContext was silently empty almost every time.
       if (state.companyContextPromise && !state.companyContextResolved) {
-        state.companyContext = await withTimeout(state.companyContextPromise, 4000);
+        state.companyContext = await withTimeout(state.companyContextPromise, 9000);
         state.companyContextResolved = true;
       }
 
