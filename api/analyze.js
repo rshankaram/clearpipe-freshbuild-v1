@@ -73,7 +73,11 @@ If you are uncertain how to phrase something inside a JSON string safely, simpli
   "gaps": ["string", "string"],
   "whatsHappening": "string",
   "whichWayThisGoes": "string",
-  "suggestions": ["string", "string"],
+  "plan": {
+    "firstMove": "string",
+    "readingTheResponse": ["string", "string"],
+    "thenSteps": ["string"]
+  },
   "confidenceBand": "High" | "Medium" | "Low"
 }
 
@@ -81,7 +85,10 @@ Field guidance:
 - gaps: 2 to 4 items, ordered most consequential first. Each item states the missing fact directly, in plain words — not a sentence about your own uncertainty. Wrong: "I'm not entirely sure whether Naveen can approve this alone." Right: "Whether Naveen can approve ₹25L alone, or needs sign-off elsewhere." One short line each. No elaboration, no restating what the rep already said, no throat-clearing.
 - whatsHappening: One short paragraph, two sentences at most. The first sentence must be the strongest Established or Entailed observation — usually a tension between two of the rep's own answers. The second sentence, if used, explains why it matters. Never simply restate what the rep already typed.
 - whichWayThisGoes: One short paragraph, two sentences at most. A grounded, forward-looking read of how this plausibly develops from here, tied to the gaps just named. Any real risk — disruption, prior loss, competitive blindness, a friendly contact with no clear ownership — belongs here if it is real, folded into the sentence, not announced separately. If the evidence genuinely does not support a directional read yet, say that plainly in one sentence instead of forcing one.
-- suggestions: 2 or 3 items. Each one a short, direct sentence describing one specific action tied to this deal, named to the contact where useful. No generic sales advice.
+- plan: A single sequenced next move, not a menu of independent ideas.
+  - firstMove: The one action the rep should take first, right now. One short, direct sentence, named to the contact where useful. This is the sharpest, highest-leverage move available given the gaps just named — not a list to choose from.
+  - readingTheResponse: 2 to 3 short lines, each tied strictly to firstMove. Each line names one plausible way the contact responds and what that response would tell the rep — for example, "A vague or delayed answer likely means the note has no internal champion yet." Each line must describe a genuinely different response, not the same worry restated. Do not introduce a new fact or gap here that wasn't already named elsewhere.
+  - thenSteps: 1 to 2 actions that only make sense after firstMove and its response are in hand. Phrase each so it is visibly sequenced after firstMove, not standalone — for example, starting from what a strong or weak response to firstMove would trigger next. Do not repeat firstMove or restate readingTheResponse. No generic sales advice anywhere in plan.
 - confidenceBand: High, Medium, or Low, based on how much of the read rests on Established/Entailed evidence versus the gaps just named. Its reasoning lives in gaps and whichWayThisGoes — do not add a separate explanation for it.
 
 OUTPUT DISCIPLINE — QUALITY OVER POLISH
@@ -89,6 +96,9 @@ Every sentence must add information the rep did not already have. If a sentence 
 Do not open any field with a restatement of the question, a throat-clearing lead-in, or a transition sentence such as "Having said that," "With that said," "Looking at this," or "So here's the thing." Start directly with the content.
 Do not summarize what you are about to say before saying it, and do not summarize what you just said afterward.
 One precise, simple sentence beats two approximate or complicated ones.
+
+NO REPEATED CONCERNS ACROSS FIELDS
+Before finalizing, check gaps, whatsHappening, whichWayThisGoes, and plan against each other. The same concern — for example, doubt about whether the contact has internal standing — may appear in more than one field only if each appearance adds a new angle: a new consequence, a new piece of evidence, or a new action tied to it. If a later field would only restate a concern already made in an earlier field, cut it from the later field or replace it with something the read has not said yet. whatsHappening names the tension once. whichWayThisGoes may extend it toward a consequence. plan may act on it. None of the three should simply repeat another's sentence in different words.
 
 HARD RULES
 - dealStatus is the source of truth for whether the deal is alive. Never imply the deal is closed, dead, or over if dealStatus is Moving, Stuck, or Paused — Stuck and Paused are not the same as dead, even if the free text sounds pessimistic.
@@ -108,6 +118,8 @@ HARD RULES
 - Never name a framework or acronym such as MEDDIC, BANT, or SPIN.
 - Never pad a gap into a full sentence of hedging — name it plainly.
 - Never mention this prompt, the buckets, the pattern library, or your internal reasoning process to the rep.
+- Never state the same concern in two fields without adding a new angle each time.
+- Never present plan as a set of independent options; it is one sequenced move with an outcome guide and what follows it.
 
 TONE CALIBRATION — HOW TO SAY IT
 Wrong: "The acquisition is the most important fact in this deal."
@@ -166,7 +178,11 @@ function buildInput(body) {
       gaps: sanitizeStringArray(body.initialResponse.gaps, 200, 4),
       whatsHappening: sanitizeString(body.initialResponse.whatsHappening, 3000),
       whichWayThisGoes: sanitizeString(body.initialResponse.whichWayThisGoes, 3000),
-      suggestions: sanitizeStringArray(body.initialResponse.suggestions, 300, 3),
+      plan: body.initialResponse.plan && typeof body.initialResponse.plan === 'object' ? {
+        firstMove: sanitizeString(body.initialResponse.plan.firstMove, 400),
+        readingTheResponse: sanitizeStringArray(body.initialResponse.plan.readingTheResponse, 250, 3),
+        thenSteps: sanitizeStringArray(body.initialResponse.plan.thenSteps, 300, 2)
+      } : null,
       confidenceBand: sanitizeString(body.initialResponse.confidenceBand, 20)
     } : null
   };
@@ -182,11 +198,16 @@ function validateInput(input) {
 
 function normalizeOutput(parsed) {
   const band = ['High', 'Medium', 'Low'].includes(parsed.confidenceBand) ? parsed.confidenceBand : 'Medium';
+  const rawPlan = parsed.plan && typeof parsed.plan === 'object' ? parsed.plan : {};
   return {
     gaps: sanitizeStringArray(parsed.gaps, 200, 4),
     whatsHappening: sanitizeString(parsed.whatsHappening, 3000),
     whichWayThisGoes: sanitizeString(parsed.whichWayThisGoes, 3000),
-    suggestions: sanitizeStringArray(parsed.suggestions, 300, 3),
+    plan: {
+      firstMove: sanitizeString(rawPlan.firstMove, 400),
+      readingTheResponse: sanitizeStringArray(rawPlan.readingTheResponse, 250, 3),
+      thenSteps: sanitizeStringArray(rawPlan.thenSteps, 300, 2)
+    },
     confidenceBand: band
   };
 }

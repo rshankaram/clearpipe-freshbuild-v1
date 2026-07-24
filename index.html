@@ -657,8 +657,18 @@
             </div>
 
             <div class="result-section">
-              <h3>What I'd suggest</h3>
-              <ol id="suggestionsOutput"></ol>
+              <h3>Do this first</h3>
+              <p id="firstMoveOutput"></p>
+            </div>
+
+            <div class="result-section">
+              <h3>How to read what happens</h3>
+              <ul id="readingResponseOutput"></ul>
+            </div>
+
+            <div class="result-section">
+              <h3>Then</h3>
+              <ol id="thenStepsOutput"></ol>
             </div>
           </div>
         </div>
@@ -965,7 +975,10 @@
       fillList('lhsGapsOutput', data.gaps, 'Nothing flagged as missing.');
       document.getElementById('whatsHappeningOutput').textContent = data.whatsHappening || 'No read generated.';
       document.getElementById('whichWayOutput').textContent = data.whichWayThisGoes || '';
-      fillList('suggestionsOutput', data.suggestions, 'No tactical next step returned.');
+      const plan = data.plan || {};
+      document.getElementById('firstMoveOutput').textContent = plan.firstMove || 'No first move returned.';
+      fillList('readingResponseOutput', plan.readingTheResponse, 'No response guide returned.');
+      fillList('thenStepsOutput', plan.thenSteps, 'Nothing sequenced after the first move yet.');
 
       const band = data.confidenceBand || '';
       confidenceChip.textContent = band ? `How confident I am about this read · ${band}` : 'Initial read';
@@ -1172,7 +1185,9 @@
       const r = state.lastResponse;
       const band = r.confidenceBand || '';
       const gaps = (r.gaps || []).map(g => `- ${g}`).join('\n');
-      const suggestions = (r.suggestions || []).map((s, idx) => `${idx + 1}. ${s}`).join('\n');
+      const plan = r.plan || {};
+      const reading = (plan.readingTheResponse || []).map(g => `- ${g}`).join('\n');
+      const thenSteps = (plan.thenSteps || []).map((s, idx) => `${idx + 1}. ${s}`).join('\n');
       const text = [
         'The read',
         band ? `Confidence: ${band}` : '',
@@ -1186,8 +1201,14 @@
         'Which way this could go',
         r.whichWayThisGoes || '',
         '',
-        "What I'd suggest",
-        suggestions
+        'Do this first',
+        plan.firstMove || '',
+        '',
+        'How to read what happens',
+        reading,
+        '',
+        'Then',
+        thenSteps
       ].join('\n');
       await navigator.clipboard.writeText(text);
       statusMessage.textContent = 'Copied to clipboard.';
@@ -1220,15 +1241,21 @@
       const subParts = [dealValue ? `Deal value: ${dealValue}` : ''].filter(Boolean).join(' · ');
 
       const gaps = (r.gaps || []).filter(Boolean);
-      const suggestions = (r.suggestions || []).filter(Boolean);
+      const plan = r.plan || {};
+      const reading = (plan.readingTheResponse || []).filter(Boolean);
+      const thenSteps = (plan.thenSteps || []).filter(Boolean);
 
       const gapsHtml = gaps.length
         ? `<ul>${gaps.map(g => `<li>${escapeHtml(g)}</li>`).join('')}</ul>`
         : '<p>Nothing flagged as missing.</p>';
 
-      const suggestionsHtml = suggestions.length
-        ? `<ol>${suggestions.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>`
-        : '<p>No tactical next step returned.</p>';
+      const readingHtml = reading.length
+        ? `<ul>${reading.map(g => `<li>${escapeHtml(g)}</li>`).join('')}</ul>`
+        : '<p>No response guide returned.</p>';
+
+      const thenStepsHtml = thenSteps.length
+        ? `<ol>${thenSteps.map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>`
+        : '<p>Nothing sequenced after the first move yet.</p>';
 
       document.getElementById('printSummary').innerHTML = `
         <div class="print-heading">${escapeHtml(headerParts || 'Deal read')}</div>
@@ -1247,8 +1274,16 @@
           <p>${escapeHtml(r.whichWayThisGoes || '')}</p>
         </div>
         <div class="print-section">
-          <h3>What I'd suggest</h3>
-          ${suggestionsHtml}
+          <h3>Do this first</h3>
+          <p>${escapeHtml(plan.firstMove || '')}</p>
+        </div>
+        <div class="print-section">
+          <h3>How to read what happens</h3>
+          ${readingHtml}
+        </div>
+        <div class="print-section">
+          <h3>Then</h3>
+          ${thenStepsHtml}
         </div>
       `;
       return true;
