@@ -134,6 +134,13 @@
       grid-template-columns: 2fr 1fr;
     }
 
+    /* First-read processing only: LHS panel is hidden so the rep sees just
+       the single processing message, not stale Step 1/2 intro copy sitting
+       next to it. */
+    .layout.processing-only {
+      grid-template-columns: 1fr;
+    }
+
     .panel {
       background: rgba(251, 251, 248, 0.92);
       border: 1px solid rgba(38, 35, 31, 0.10);
@@ -432,9 +439,21 @@
     .results.active { display: block; }
 
     .results h2 {
-      margin: 0 0 14px;
+      margin: 0 0 10px;
       font-size: 20px;
       letter-spacing: -0.02em;
+    }
+
+    .results-lead {
+      margin: 0 0 14px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    #printSummary .print-lead {
+      color: var(--muted);
+      margin: 0 0 8px !important;
     }
 
     .results ul {
@@ -620,26 +639,25 @@
     </div>
 
     <div class="layout" id="layoutGrid">
-      <aside class="panel" aria-labelledby="introHeading">
+      <aside class="panel" id="lhsPanel" aria-labelledby="introHeading">
         <div class="panel-main">
           <h1 id="introHeading">Deal Diagnosis</h1>
 
           <div class="intro-step active" id="introStep1">
             <p>Get an objective analysis of this deal.</p>
-            <p>It might shine a light on what you are missing.</p>
-            <p>Help improve your chances of winning.</p>
-            <p><strong>Data Confidentiality:</strong> Nothing you enter here is stored, saved, or shared.</p>
-            <p>This analysis exists for you only in this session.</p>
+            <p>It might shine a light on what you are missing and help improve your chances of winning.</p>
+            <p><strong>Data Confidentiality:</strong></p>
+            <p>Nothing you enter here is stored, saved, or shared. This analysis exists for you only in this session.</p>
             <p>Once you close this window, it's gone forever.</p>
+            <p>However, we'd recommend you download the analysis for later use — especially if you'd like to come back here for the same deal.</p>
           </div>
 
           <div class="intro-step" id="introStep2">
-            <p>Thanks for sharing that context.</p>
-            <p>Looks interesting.</p>
-            <p>Please answer a few more questions.</p>
-            <p>The more info you share, the better the analysis.</p>
-            <p><strong>Caution:</strong> Please provide facts and information for which you have evidence.</p>
-            <p>Please don't enter your judgements, assumptions, or inferences.</p>
+            <p>Thanks for sharing that context. Looks interesting.</p>
+            <p>Please answer a few more questions. The more information you share, the better the analysis.</p>
+            <p><strong>Caution:</strong></p>
+            <p>Please only provide facts and information for which you have evidence.</p>
+            <p>Please don't share your judgements, inferences, and assumptions.</p>
           </div>
 
           <div class="intro-step" id="introStep3">
@@ -826,12 +844,13 @@
 
         <div class="processing" id="processing">
           <div class="processing-box">
-            <div class="pulse"><i></i><i></i><i></i> Pulling together what you've told us so far</div>
+            <div class="pulse"><i></i><i></i><i></i> Allow me a minute. I am processing the information you shared and will pull together an analysis.</div>
           </div>
         </div>
 
         <div class="results" id="results">
-          <h2>Based on what you've shared, I couldn't determine</h2>
+          <h2>If you'd like to share more, including a past read of this deal, I can analyse further.</h2>
+          <p class="results-lead">If the relevant information is provided, I can look to determine aspects such as:</p>
           <ul class="lhs-gaps" id="lhsGapsOutput"></ul>
         </div>
       </main>
@@ -917,6 +936,8 @@
       introStep2.classList.remove('active');
       introStep3.classList.add('active');
       actionsPanel.classList.remove('hidden');
+      document.getElementById('lhsPanel').classList.remove('hidden');
+      layoutGrid.classList.remove('processing-only');
       layoutGrid.classList.add('read-state');
     }
 
@@ -1070,6 +1091,8 @@
       if (isFirstRead) {
         formBody.classList.add('hidden');
         progressBlock.classList.add('hidden');
+        document.getElementById('lhsPanel').classList.add('hidden');
+        layoutGrid.classList.add('processing-only');
         formStatusMessage.textContent = '';
       } else {
         statusMessage.textContent = '';
@@ -1110,6 +1133,8 @@
         if (isFirstRead) {
           formBody.classList.remove('hidden');
           progressBlock.classList.remove('hidden');
+          document.getElementById('lhsPanel').classList.remove('hidden');
+          layoutGrid.classList.remove('processing-only');
           formStatusMessage.textContent = message;
           formStatusMessage.style.color = 'var(--error)';
         } else {
@@ -1166,6 +1191,8 @@
       progressBlock.classList.remove('hidden');
       actionsPanel.classList.add('hidden');
       layoutGrid.classList.remove('read-state');
+      layoutGrid.classList.remove('processing-only');
+      document.getElementById('lhsPanel').classList.remove('hidden');
       setStep(1);
       processing.classList.remove('active');
       statusMessage.textContent = '';
@@ -1192,7 +1219,8 @@
         'The read',
         band ? `Confidence: ${band}` : '',
         '',
-        "Based on what you've shared, I couldn't determine",
+        "If you'd like to share more, including a past read of this deal, I can analyse further.",
+        'If the relevant information is provided, I can look to determine aspects such as:',
         gaps,
         '',
         "What's likely happening now",
@@ -1262,7 +1290,8 @@
         ${subParts ? `<div class="print-subheading">${escapeHtml(subParts)}</div>` : ''}
         ${band ? `<div class="print-confidence">How confident I am about this read · ${escapeHtml(band)}</div>` : ''}
         <div class="print-section">
-          <h3>Based on what you've shared, I couldn't determine</h3>
+          <h3>If you'd like to share more, including a past read of this deal, I can analyse further.</h3>
+          <p class="print-lead">If the relevant information is provided, I can look to determine aspects such as:</p>
           ${gapsHtml}
         </div>
         <div class="print-section">
